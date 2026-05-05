@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="midnight">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#FFB800"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="POSH"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="description" content="POSH — Point of Sale Hub for your business"/>
+<title>POSH — Point of Sale Hub</title>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFB800'/%3E%3Crect x='10' y='10' width='18' height='24' rx='4' fill='%230E1420' opacity='0.9'/%3E%3Crect x='10' y='37' width='18' height='14' rx='3' fill='%230E1420' opacity='0.5'/%3E%3Crect x='32' y='10' width='22' height='14' rx='3' fill='%230E1420' opacity='0.5'/%3E%3Crect x='32' y='28' width='22' height='23' rx='4' fill='%230E1420' opacity='0.9'/%3E%3C/svg%3E"/>
+<link rel="stylesheet" href="styles.css">
+<style>
+.link-btn{background:none;border:none;color:var(--acc);font-size:inherit;font-family:inherit;font-weight:700;cursor:pointer;padding:0;text-decoration:underline}
+.staff-card{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--surf2);border-radius:13px;border:1px solid var(--brd)}
+#auth-tab-signin.active,#auth-tab-signup.active{background:var(--acc);color:var(--surf)}
+#auth-tab-signin:not(.active),#auth-tab-signup:not(.active){background:transparent;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+  SPLASH SCREEN
+═══════════════════════════════════ -->
+<div id="splash">
+  <div class="splash-logo-ring">
+    <svg viewBox="0 0 52 52" fill="none" width="52" height="52">
+      <rect width="52" height="52" rx="14" fill="rgba(255,255,255,0.15)"/>
+      <rect x="10" y="10" width="13" height="16" rx="3.5" fill="white" opacity="0.95"/>
+      <rect x="10" y="29" width="13" height="10" rx="3" fill="white" opacity="0.55"/>
+      <rect x="26" y="10" width="16" height="11" rx="3" fill="white" opacity="0.55"/>
+      <rect x="26" y="24" width="16" height="15" rx="3.5" fill="rgba(255,184,0,0.9)" opacity="0.95"/>
+    </svg>
+  </div>
+  <div class="splash-letters">
+    <span class="splash-letter">P</span>
+    <span class="splash-letter">O</span>
+    <span class="splash-letter accent">S</span>
+    <span class="splash-letter">H</span>
+  </div>
+  <div class="splash-tagline">Point of Sale Hub</div>
+  <div class="splash-bar-bg"><div class="splash-bar-fill"></div></div>
+  <div class="splash-dots">
+    <div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  ENTRY SCREEN — Owner vs Staff choice
+═══════════════════════════════════ -->
+<div id="entry-screen" style="display:none;position:fixed;inset:0;z-index:500;
+     background:var(--surf);flex-direction:column;align-items:center;justify-content:center;
+     padding:28px 20px;overflow-y:auto">
+
+  <!-- Choice panel -->
+  <div id="entry-choice" style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:360px">
+    <div style="font-size:52px;margin-bottom:4px">🏪</div>
+    <div style="font-size:26px;font-weight:900;color:var(--acc);letter-spacing:-1px;margin-bottom:4px">POSH</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:32px;letter-spacing:.5px;text-transform:uppercase">Point of Sale Hub</div>
+
+    <div style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;text-align:center">Who are you?</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:24px;text-align:center;line-height:1.6">
+      Choose how you'd like to log in
+    </div>
+
+    <button onclick="chooseOwner()" style="width:100%;padding:18px 16px;margin-bottom:12px;
+        background:var(--acc);color:var(--surf);border:none;border-radius:16px;
+        font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:14px;
+        text-align:left;font-family:inherit">
+      <div style="font-size:32px;flex-shrink:0">👑</div>
+      <div>
+        <div style="font-size:14px;font-weight:800">I'm the Shop Owner</div>
+        <div style="font-size:11px;opacity:.75;margin-top:2px;font-weight:500">Full access · Requires Google or email account</div>
+      </div>
+    </button>
+
+    <button onclick="chooseStaff()" style="width:100%;padding:18px 16px;
+        background:var(--surf2);color:var(--text);border:1.5px solid var(--brd);border-radius:16px;
+        font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:14px;
+        text-align:left;font-family:inherit">
+      <div style="font-size:32px;flex-shrink:0">👤</div>
+      <div>
+        <div style="font-size:14px;font-weight:800">I'm a Staff Member</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;font-weight:500">POS access · Use shop code &amp; PIN from your employer</div>
+      </div>
+    </button>
+  </div>
+
+  <!-- Owner auth panel -->
+  <div id="entry-owner-auth" style="display:none;flex-direction:column;width:100%;max-width:360px">
+    <button onclick="entryBack()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;
+        font-family:inherit;font-weight:700;margin-bottom:20px;text-align:left;padding:0;display:flex;align-items:center;gap:4px">
+      ← Back
+    </button>
+    <div style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:4px" id="auth-title">Welcome Back</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:22px">Sign in to manage your shop</div>
+
+    <!-- Tab toggle -->
+    <div style="display:flex;background:var(--surf2);border-radius:12px;padding:3px;margin-bottom:20px;gap:3px">
+      <button id="auth-tab-signin" class="active" onclick="switchAuthTab('signin')"
+          style="flex:1;padding:8px;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+                 background:var(--acc);color:var(--surf)">Sign In</button>
+      <button id="auth-tab-signup" onclick="switchAuthTab('signup')"
+          style="flex:1;padding:8px;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+                 background:transparent;color:var(--muted)">Create Account</button>
+    </div>
+
+    <!-- Google -->
+    <button id="auth-google-btn" onclick="ownerSignInGoogle()"
+        style="width:100%;padding:13px 16px;margin-bottom:14px;
+               background:var(--surf2);color:var(--text);border:1.5px solid var(--brd);border-radius:14px;
+               font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:inherit">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16.1 19 13 24 13c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.3 0-9.7-3.3-11.3-8H6.3C9.7 35.7 16.3 40 24 40v4z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.3 4.1-4.3 5.4l6.2 5.2C37 36.8 44 31 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+      Continue with Google
+    </button>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:1px;background:var(--brd)"></div>
+      <span style="font-size:11px;color:var(--muted);font-weight:600">OR</span>
+      <div style="flex:1;height:1px;background:var(--brd)"></div>
+    </div>
+
+    <!-- Email / Password -->
+    <div class="form-group" style="margin-bottom:10px">
+      <input class="field" id="auth-email" type="email" placeholder="Email address" autocomplete="email"/>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <input class="field" id="auth-pass" type="password" placeholder="Password" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')submitOwnerAuth()"/>
+    </div>
+
+    <div id="auth-error" style="display:none;font-size:12px;color:var(--red,#dc3232);
+         background:rgba(220,50,50,.08);border:1px solid rgba(220,50,50,.25);border-radius:10px;
+         padding:9px 12px;margin-bottom:12px;font-weight:600"></div>
+
+    <div id="auth-spinner" style="display:none;justify-content:center;margin-bottom:12px">
+      <span style="font-size:12px;color:var(--muted)">⏳ Please wait…</span>
+    </div>
+
+    <button id="auth-submit-btn" onclick="submitOwnerAuth()"
+        style="width:100%;padding:14px;background:var(--acc);color:var(--surf);border:none;border-radius:14px;
+               font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:12px">
+      Sign In
+    </button>
+
+    <div id="auth-switch-hint" style="text-align:center;font-size:12px;color:var(--muted)">
+      New shop? <button class="link-btn" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+  </div>
+
+  <!-- Staff login panel -->
+  <div id="entry-staff-login" style="display:none;flex-direction:column;width:100%;max-width:360px">
+    <button onclick="entryBack()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;
+        font-family:inherit;font-weight:700;margin-bottom:20px;text-align:left;padding:0;display:flex;align-items:center;gap:4px">
+      ← Back
+    </button>
+    <div style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:4px">Staff Login</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:22px;line-height:1.6">
+      Enter the 6-letter shop code and your details from your employer
+    </div>
+
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="field-label">Shop Code</label>
+      <input class="field" id="sl-shop-code" type="text" maxlength="6" placeholder="e.g. ABC123"
+             style="text-transform:uppercase;letter-spacing:3px;font-size:18px;font-weight:800;text-align:center"
+             oninput="this.value=this.value.toUpperCase()"/>
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="field-label">Your Name (as registered)</label>
+      <input class="field" id="sl-name" type="text" placeholder="e.g. Jane"/>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="field-label">Your 4-digit PIN</label>
+      <input class="field" id="sl-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"
+             onkeydown="if(event.key==='Enter')staffLogin()"/>
+    </div>
+
+    <div id="sl-error" style="display:none;font-size:12px;color:var(--red,#dc3232);
+         background:rgba(220,50,50,.08);border:1px solid rgba(220,50,50,.25);border-radius:10px;
+         padding:9px 12px;margin-bottom:12px;font-weight:600;line-height:1.5"></div>
+
+    <button id="sl-submit-btn" onclick="staffLogin()"
+        style="width:100%;padding:14px;background:var(--acc);color:var(--surf);border:none;border-radius:14px;
+               font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">
+      Login as Staff →
+    </button>
+
+    <div style="margin-top:16px;padding:12px;background:var(--surf2);border-radius:12px;
+         font-size:11px;color:var(--muted);line-height:1.7;text-align:center">
+      Ask your employer for the shop code.<br>
+      They can find it in <strong>Settings → Share Shop Code</strong>.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  ONBOARDING WIZARD (first launch)
+═══════════════════════════════════ -->
+<div id="onboarding-modal" style="display:none">
+  <div class="ob-screen" id="ob-s1">
+    <div class="ob-hero">
+      <div class="ob-logo">PO<span>S</span>H</div>
+      <div class="ob-emoji">🏪</div>
+      <h2>Welcome to POSH</h2>
+      <p>Your smart point-of-sale system. Let's set up your shop in 3 quick steps.</p>
+    </div>
+    <button class="btn btn-primary btn-full btn-lg" onclick="obNext(2)">Get Started →</button>
+  </div>
+  <div class="ob-screen" id="ob-s2" style="display:none">
+    <div class="ob-step-label">Step 1 of 3 — Shop Info</div>
+    <h2>Tell us about your shop</h2>
+    <div class="form-group"><label class="field-label">Shop Name *</label><input class="field" id="ob-shopname" type="text" placeholder="e.g. Brenda's Fish Market"/></div>
+    <div class="form-group"><label class="field-label">Currency</label>
+      <select class="field" id="ob-currency">
+        <option value="KES">KES — Kenyan Shilling (KSh)</option>
+        <option value="USD">USD — US Dollar ($)</option>
+        <option value="NGN">NGN — Nigerian Naira (₦)</option>
+        <option value="GHS">GHS — Ghanaian Cedi (₵)</option>
+        <option value="UGX">UGX — Ugandan Shilling (USh)</option>
+        <option value="TZS">TZS — Tanzanian Shilling (TSh)</option>
+        <option value="ZAR">ZAR — South African Rand (R)</option>
+        <option value="GBP">GBP — British Pound (£)</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="field-label">VAT / Tax Rate (%)</label><input class="field" id="ob-tax" type="number" placeholder="0" value="0" min="0" max="100"/></div>
+    <div class="form-group"><label class="field-label">Daily Sales Goal</label><input class="field" id="ob-goal" type="number" placeholder="6800"/></div>
+    <button class="btn btn-primary btn-full btn-lg" onclick="obNext(3)">Next →</button>
+  </div>
+  <div class="ob-screen" id="ob-s3" style="display:none">
+    <div class="ob-step-label">Step 2 of 3 — Security</div>
+    <h2>Set your PINs</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Admin PIN gives full access. Staff PIN limits to POS only.</p>
+    <div class="form-group"><label class="field-label">Admin PIN (4 digits) *</label><input class="field" id="ob-adminpin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"/></div>
+    <div class="form-group"><label class="field-label">Staff PIN (4 digits) *</label><input class="field" id="ob-staffpin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"/></div>
+    <div class="form-group"><label class="field-label">Recovery Phone Number</label><input class="field" id="ob-phone" type="tel" placeholder="e.g. 0712 345 678"/></div>
+    <button class="btn btn-primary btn-full btn-lg" onclick="obNext(4)">Next →</button>
+  </div>
+  <div class="ob-screen" id="ob-s4" style="display:none">
+    <div class="ob-step-label">Step 3 of 3 — Choose Theme</div>
+    <h2>Pick your style</h2>
+    <div class="ob-themes">
+      <div class="ob-theme-opt active" data-theme="midnight" onclick="obTheme(this,'midnight')">
+        <div class="ob-theme-preview midnight-prev"></div>
+        <div class="ob-theme-name">Midnight Gold</div>
+      </div>
+      <div class="ob-theme-opt" data-theme="emerald" onclick="obTheme(this,'emerald')">
+        <div class="ob-theme-preview emerald-prev"></div>
+        <div class="ob-theme-name">Emerald</div>
+      </div>
+      <div class="ob-theme-opt" data-theme="terracotta" onclick="obTheme(this,'terracotta')">
+        <div class="ob-theme-preview terracotta-prev"></div>
+        <div class="ob-theme-name">Terracotta</div>
+      </div>
+      <div class="ob-theme-opt" data-theme="ocean" onclick="obTheme(this,'ocean')">
+        <div class="ob-theme-preview ocean-prev"></div>
+        <div class="ob-theme-name">Ocean Pro</div>
+      </div>
+      <div class="ob-theme-opt" data-theme="obsidian" onclick="obTheme(this,'obsidian')">
+        <div class="ob-theme-preview obsidian-prev"></div>
+        <div class="ob-theme-name">Obsidian</div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full btn-lg" onclick="obFinish()">🚀 Launch POSH</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  PIN SCREEN
+═══════════════════════════════════ -->
+<div id="pin-screen">
+  <div class="pin-logo">
+    <svg viewBox="0 0 60 60" fill="none" width="60" height="60">
+      <rect width="60" height="60" rx="16" fill="var(--acc)"/>
+      <rect x="9" y="9" width="15" height="22" rx="4" fill="var(--surf)" opacity="0.95"/>
+      <rect x="9" y="34" width="15" height="17" rx="4" fill="var(--surf)" opacity="0.55"/>
+      <rect x="27" y="9" width="24" height="17" rx="4" fill="var(--surf)" opacity="0.55"/>
+      <rect x="27" y="29" width="24" height="22" rx="4" fill="var(--surf)" opacity="0.95"/>
+    </svg>
+  </div>
+  <div class="pin-brand">PO<span>S</span>H</div>
+  <div class="pin-sub">Point of Sale Hub</div>
+  <div id="pin-lockout-banner" class="pin-lockout-banner" style="display:none">
+    🔒 Too many attempts. Try again in <span id="pin-lockout-countdown">5:00</span>
+  </div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-pad">
+    <div class="pin-key" onclick="pinPress('1')">1</div>
+    <div class="pin-key" onclick="pinPress('2')"><span>2</span><span class="pin-key-sub">ABC</span></div>
+    <div class="pin-key" onclick="pinPress('3')"><span>3</span><span class="pin-key-sub">DEF</span></div>
+    <div class="pin-key" onclick="pinPress('4')"><span>4</span><span class="pin-key-sub">GHI</span></div>
+    <div class="pin-key" onclick="pinPress('5')"><span>5</span><span class="pin-key-sub">JKL</span></div>
+    <div class="pin-key" onclick="pinPress('6')"><span>6</span><span class="pin-key-sub">MNO</span></div>
+    <div class="pin-key" onclick="pinPress('7')"><span>7</span><span class="pin-key-sub">PQRS</span></div>
+    <div class="pin-key" onclick="pinPress('8')"><span>8</span><span class="pin-key-sub">TUV</span></div>
+    <div class="pin-key" onclick="pinPress('9')"><span>9</span><span class="pin-key-sub">WXYZ</span></div>
+    <div class="pin-key pin-biometric" onclick="tryBiometric()" id="pin-bio-btn" style="display:none">👆</div>
+    <div class="pin-key" onclick="pinPress('0')">0</div>
+    <div class="pin-key" onclick="pinDel()">⌫</div>
+  </div>
+  <div class="pin-hint" id="pin-hint">Enter your PIN</div>
+  <div id="pin-role-badge" class="pin-role-badge" style="display:none"></div>
+  <div class="pin-actions">
+    <button class="pin-change-btn" onclick="openPinReset()">🔑 Forgot PIN?</button>
+    <button class="pin-change-btn" id="pin-bio-setup-btn" onclick="setupBiometric()" style="display:none">👆 Enable Biometrics</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  PIN RESET MODAL
+═══════════════════════════════════ -->
+<div id="pin-reset-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1100;align-items:center;justify-content:center;padding:24px">
+  <div class="modal-card">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:36px;margin-bottom:8px">🔑</div>
+      <div class="modal-title" style="text-align:center">Reset PIN</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px" id="pin-reset-sub">Enter your registered phone number</div>
+    </div>
+    <div id="pin-reset-step1">
+      <div class="form-group"><label class="field-label">Phone Number</label><input class="field" id="pin-reset-phone" type="tel" placeholder="e.g. 0712 345 678"/></div>
+      <div style="display:flex;gap:9px">
+        <button class="btn btn-secondary" style="flex:1" onclick="closePinReset()">Cancel</button>
+        <button class="btn btn-primary" style="flex:2" onclick="verifyResetPhone()">Verify</button>
+      </div>
+    </div>
+    <div id="pin-reset-step2" style="display:none">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;text-align:center">Which PIN to reset?</div>
+      <div style="display:flex;gap:9px;margin-bottom:12px">
+        <button class="btn btn-secondary" style="flex:1;flex-direction:column;height:60px;gap:2px;display:flex;align-items:center;justify-content:center" onclick="startPhoneReset('staff')"><span>👤</span><span style="font-size:10px">Staff PIN</span></button>
+        <button class="btn btn-secondary" style="flex:1;flex-direction:column;height:60px;gap:2px;display:flex;align-items:center;justify-content:center" onclick="startPhoneReset('admin')"><span>👑</span><span style="font-size:10px">Admin PIN</span></button>
+      </div>
+      <button class="btn btn-secondary btn-full" onclick="closePinReset()">Cancel</button>
+    </div>
+    <div id="pin-reset-step3" style="display:none">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;text-align:center" id="pin-reset-step3-label">Enter new PIN</div>
+      <input class="field" id="pin-reset-newpin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="font-size:24px;text-align:center;letter-spacing:8px;margin-bottom:10px"/>
+      <div style="display:flex;gap:9px">
+        <button class="btn btn-secondary" style="flex:1" onclick="closePinReset()">Cancel</button>
+        <button class="btn btn-primary" style="flex:2" onclick="confirmPhoneReset()">Set PIN</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  MAIN APP
+═══════════════════════════════════ -->
+<div id="app" style="display:none">
+
+  <!-- Sync banner -->
+  <div id="sync-banner" class="sync-banner"></div>
+  <div id="donate-nudge" style="display:none;position:fixed;bottom:80px;left:0;right:0;margin:0 16px;z-index:699;animation:nudgeSlide .4s ease">
+    <div style="background:linear-gradient(135deg,#005C3B,#00A67E);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,166,126,.35)">
+      <div style="font-size:22px;flex-shrink:0">💚</div>
+      <div style="flex:1;min-width:0">
+        <div style="color:#fff;font-size:13px;font-weight:800;line-height:1.2">POSH is back online!</div>
+        <div style="color:rgba(255,255,255,.8);font-size:11px;margin-top:2px">Enjoying the app? Support the dev 🙏</div>
+      </div>
+      <button onclick="openDonateModal();closeDonateNudge()" style="background:rgba(255,255,255,.2);border:none;border-radius:10px;padding:7px 14px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0">Donate 💚</button>
+      <button onclick="closeDonateNudge()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1">×</button>
+    </div>
+  </div>
+  <!-- Idle banner -->
+  <div class="idle-banner" id="idle-banner" onclick="dismissIdle()">
+    ⏰ <span id="idle-msg">No sales in 30 minutes</span>
+    <span class="idle-x">×</span>
+  </div>
+
+  <!-- ── SIDEBAR OVERLAY + PANEL ── -->
+  <div class="sidebar-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+  <div class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <button class="sb-close" onclick="closeSidebar()">×</button>
+      <div class="sb-logo-row">
+        <div class="sb-logo">
+          <svg viewBox="0 0 32 32" fill="none" width="32" height="32"><rect width="32" height="32" rx="9" fill="var(--acc)"/><rect x="7" y="7" width="8" height="10" rx="2.5" fill="var(--surf)" opacity="0.95"/><rect x="7" y="19" width="8" height="6" rx="2" fill="var(--surf)" opacity="0.6"/><rect x="17" y="7" width="8" height="6" rx="2" fill="var(--surf)" opacity="0.6"/><rect x="17" y="15" width="8" height="10" rx="2.5" fill="var(--surf)" opacity="0.95"/></svg>
+        </div>
+        <div>
+          <div class="sb-brand">PO<span>S</span>H</div>
+          <div class="sb-tagline">Point of Sale Hub</div>
+        </div>
+      </div>
+      <div class="sb-shop-pill" id="sb-shop-name">🏪 POSH Shop</div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-section-label">Appearance</div>
+      <div class="sb-item" onclick="openThemeModal()">
+        <div class="sb-item-icon" style="background:var(--acc-l)">🎨</div>
+        <div class="sb-item-info"><div class="sb-item-label">App Theme</div><div class="sb-item-sub" id="sb-theme-sub">Midnight Gold</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" onclick="toggleDark()">
+        <div class="sb-item-icon" style="background:var(--surf2)">🌙</div>
+        <div class="sb-item-info"><div class="sb-item-label">Dark Mode</div><div class="sb-item-sub" id="sb-dark-sub">Currently On</div></div>
+        <div class="sb-item-right"><div class="sb-toggle-track" id="sb-dm-track"><div class="sb-toggle-thumb"></div></div></div>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-section-label">Business</div>
+      <div class="sb-item" id="sb-settings-item" onclick="closeSidebar();switchTab('settings')">
+        <div class="sb-item-icon" style="background:var(--acc-l)">⚙️</div>
+        <div class="sb-item-info"><div class="sb-item-label">Settings</div><div class="sb-item-sub">Goals, currency, tax</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" id="sb-staff-item" onclick="closeSidebar();switchTab('staff')">
+        <div class="sb-item-icon" style="background:var(--surf2)">👥</div>
+        <div class="sb-item-info"><div class="sb-item-label">Staff Accounts</div><div class="sb-item-sub">Manage team access</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" id="sb-crm-item" onclick="closeSidebar();switchTab('crm')">
+        <div class="sb-item-icon" style="background:var(--blue-l)">👤</div>
+        <div class="sb-item-info"><div class="sb-item-label">Customers (CRM)</div><div class="sb-item-sub">Customer directory</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" onclick="closeSidebar();openFloatModal()">
+        <div class="sb-item-icon" style="background:var(--green-l)">💵</div>
+        <div class="sb-item-info"><div class="sb-item-label">Cash Float</div><div class="sb-item-sub" id="sb-float-sub">Open / close shift</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" id="sb-po-item" onclick="closeSidebar();openPurchaseOrderModal()">
+        <div class="sb-item-icon" style="background:var(--purple-l)">📋</div>
+        <div class="sb-item-info"><div class="sb-item-label">Purchase Orders</div><div class="sb-item-sub">Restock from suppliers</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-section-label">Alerts</div>
+      <div class="sb-item" onclick="closeSidebar();switchTab('reports')">
+        <div class="sb-item-icon" style="background:var(--red-l)">🔔</div>
+        <div class="sb-item-info"><div class="sb-item-label">Alerts</div><div class="sb-item-sub" id="sb-alerts-sub">No active alerts</div></div>
+        <div class="sb-item-right" id="sb-notif-badge-wrap"></div>
+      </div>
+      <div class="sb-item" onclick="closeSidebar();openIdleModal()">
+        <div class="sb-item-icon" style="background:var(--orange-l)">⏰</div>
+        <div class="sb-item-info"><div class="sb-item-label">Idle Alert Timer</div><div class="sb-item-sub" id="sb-idle-sub">After 30 mins</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-section-label">Data</div>
+      <div class="sb-item" id="sb-backup-item" onclick="closeSidebar();backupData()">
+        <div class="sb-item-icon" style="background:var(--blue-l)">💾</div>
+        <div class="sb-item-info"><div class="sb-item-label">Backup Data</div><div class="sb-item-sub">Download JSON backup</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" id="sb-report-item" onclick="closeSidebar();exportPDF()">
+        <div class="sb-item-icon" style="background:var(--amber-l)">📄</div>
+        <div class="sb-item-info"><div class="sb-item-label">Export PDF Report</div><div class="sb-item-sub">Formatted sales report</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" id="sb-excel-item" onclick="closeSidebar();exportExcel()">
+        <div class="sb-item-icon" style="background:var(--green-l)">📊</div>
+        <div class="sb-item-info"><div class="sb-item-label">Export to Excel</div><div class="sb-item-sub">Download .xlsx file</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-section-label">Security</div>
+      <div class="sb-item" id="sb-audit-item" onclick="closeSidebar();openAuditLog()">
+        <div class="sb-item-icon" style="background:var(--purple-l)">📋</div>
+        <div class="sb-item-info"><div class="sb-item-label">Audit Log</div><div class="sb-item-sub">Admin activity history</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" id="sb-adminpin-item" onclick="closeSidebar();openChangePinModal('admin')">
+        <div class="sb-item-icon" style="background:var(--purple-l)">👑</div>
+        <div class="sb-item-info"><div class="sb-item-label">Change Admin PIN</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" id="sb-staffpin-item" onclick="closeSidebar();openChangePinModal('staff')">
+        <div class="sb-item-icon" style="background:var(--surf2)">👤</div>
+        <div class="sb-item-info"><div class="sb-item-label">Change Staff PIN</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" id="sb-shopcode-item" onclick="closeSidebar();copyShopCode()">
+        <div class="sb-item-icon" style="background:var(--acc-l,rgba(255,184,0,.12))">🔗</div>
+        <div class="sb-item-info"><div class="sb-item-label">Share Shop Code</div><div class="sb-item-sub" id="sb-code-sub">Tap to copy staff login code</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+      <div class="sb-item" onclick="closeSidebar();lockApp()">
+        <div class="sb-item-icon" style="background:var(--red-l)">🔒</div>
+        <div class="sb-item-info"><div class="sb-item-label">Lock App</div><div class="sb-item-sub">End shift &amp; lock</div></div>
+        <div class="sb-item-right"><span class="sb-arr">›</span></div>
+      </div>
+    </div>
+    <div class="sb-footer">
+      <div id="sb-role-badge" class="sb-role-badge"></div>
+      <div class="sb-version">POSH v4.0 · Point of Sale Hub</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+    SCREEN: HOME / DASHBOARD
+  ══════════════════════════════════ -->
+  <div class="screen active" id="screen-home">
+    <!-- ── Top bar ── -->
+    <div class="dash-topbar">
+      <div class="dash-brand">
+        <div class="dash-logo-box">
+          <svg viewBox="0 0 32 32" fill="none" width="20" height="20"><rect width="32" height="32" rx="8" fill="var(--acc)"/><rect x="7" y="7" width="8" height="10" rx="2.5" fill="var(--bg)" opacity="0.95"/><rect x="7" y="19" width="8" height="6" rx="2" fill="var(--bg)" opacity="0.55"/><rect x="17" y="7" width="8" height="6" rx="2" fill="var(--bg)" opacity="0.55"/><rect x="17" y="15" width="8" height="10" rx="2.5" fill="var(--bg)" opacity="0.95"/></svg>
+          <span class="dash-brand-name">PO<span>S</span>H</span>
+        </div>
+        <div class="dash-topbar-right">
+          <div class="dash-date-pill" id="header-date"></div>
+          <button class="dash-icon-btn" onclick="openNotifPanel()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="notif-dot" id="notif-dot" style="display:none"></span>
+          </button>
+          <button class="dash-icon-btn" onclick="openSidebar()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Greeting band -->
+      <div class="dash-greeting-band">
+        <div class="dash-greeting-eyebrow" id="dash-eyebrow">● Good morning</div>
+        <div class="dash-greeting-main" id="sales-time"></div>
+        <div class="dash-greeting-hint" id="dash-hint">Ready to make some sales today?</div>
+      </div>
+    </div>
+
+    <div class="screen-scroll">
+      <!-- ── Hero card ── -->
+      <div class="dash-hero">
+        <div class="dash-hero-top">
+          <div>
+            <div class="dash-hero-label">Today's Revenue</div>
+            <div class="dash-hero-amount" id="d-sales">KSh 0</div>
+            <div class="dash-hero-sub" id="d-sales-change">No sales yet</div>
+          </div>
+          <div class="dash-hero-goal-ring">
+            <svg viewBox="0 0 56 56" width="56" height="56">
+              <circle cx="28" cy="28" r="24" fill="none" stroke="var(--brd)" stroke-width="4"/>
+              <circle cx="28" cy="28" r="24" fill="none" stroke="var(--acc)" stroke-width="4"
+                stroke-dasharray="150.8" stroke-dashoffset="150.8"
+                id="goal-ring" stroke-linecap="round" transform="rotate(-90 28 28)"/>
+            </svg>
+            <div class="dash-hero-goal-pct" id="goal-pct">0%</div>
+          </div>
+        </div>
+        <!-- Goal progress bar -->
+        <div class="dash-goal-bar-wrap">
+          <div class="dash-goal-bar-bg">
+            <div class="dash-goal-bar-fill" id="goal-bar" style="width:0%"></div>
+          </div>
+          <div class="dash-goal-sub" id="goal-sub">Set a daily goal in Settings</div>
+        </div>
+        <canvas id="spark-sales" class="dash-sparkline" width="300" height="32"></canvas>
+      </div>
+
+      <!-- ── KPI 2×2 grid ── -->
+      <div class="dash-kpi-grid">
+        <!-- Net Profit -->
+        <div class="dash-kpi dash-kpi-green">
+          <div class="dash-kpi-top">
+            <span class="dash-kpi-label">Net Profit</span>
+            <div class="dash-kpi-icon dash-kpi-icon-green">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+          </div>
+          <div class="dash-kpi-val" id="d-profit">KSh 0</div>
+          <div class="dash-kpi-sub" id="d-margin">— margin</div>
+          <canvas class="dash-kpi-spark" id="spark-profit" width="120" height="24"></canvas>
+        </div>
+        <!-- Transactions -->
+        <div class="dash-kpi dash-kpi-blue">
+          <div class="dash-kpi-top">
+            <span class="dash-kpi-label">Transactions</span>
+            <div class="dash-kpi-icon dash-kpi-icon-blue">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+          </div>
+          <div class="dash-kpi-val" id="d-txns">0</div>
+          <div class="dash-kpi-sub" id="d-avg">Avg: KSh 0</div>
+          <canvas class="dash-kpi-spark" id="spark-txns" width="120" height="24"></canvas>
+        </div>
+        <!-- Out of Stock -->
+        <div class="dash-kpi dash-kpi-red">
+          <div class="dash-kpi-top">
+            <span class="dash-kpi-label">Out of Stock</span>
+            <div class="dash-kpi-icon dash-kpi-icon-red">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+            </div>
+          </div>
+          <div class="dash-kpi-val" id="d-low">0</div>
+          <div class="dash-kpi-sub" id="d-low-sub">✓ All good</div>
+          <canvas class="dash-kpi-spark" id="spark-stock" width="120" height="24"></canvas>
+        </div>
+        <!-- Loyalty Points -->
+        <div class="dash-kpi dash-kpi-amber">
+          <div class="dash-kpi-top">
+            <span class="dash-kpi-label">Points Issued</span>
+            <div class="dash-kpi-icon dash-kpi-icon-amber">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+          </div>
+          <div class="dash-kpi-val" id="d-loyalty-pts">0</div>
+          <div class="dash-kpi-sub">Today</div>
+          <canvas class="dash-kpi-spark" id="spark-loyalty" width="120" height="24"></canvas>
+        </div>
+      </div>
+
+      <!-- ── Float status card ── -->
+      <div id="float-status-card" class="dash-float-card" style="display:none">
+        <div class="dash-float-inner">
+          <div>
+            <div class="dash-float-label">Opening Float</div>
+            <div class="dash-float-val" id="float-opening-display">KSh 0</div>
+          </div>
+          <div style="text-align:right">
+            <div class="dash-float-label">Expected Cash</div>
+            <div class="dash-float-val" id="float-expected-display">KSh 0</div>
+          </div>
+          <button class="btn btn-secondary" style="padding:6px 12px;font-size:11px" onclick="openFloatModal()">Close Shift</button>
+        </div>
+      </div>
+
+      <!-- ── Quick Actions ── -->
+      <div class="dash-section">
+        <div class="dash-section-head">
+          <span class="dash-section-title">Quick Actions</span>
+        </div>
+        <div class="dash-qa-grid">
+          <div class="dash-qa-btn dash-qa-primary" onclick="switchTab('sales')">
+            <span class="dash-qa-ico">🛒</span><span class="dash-qa-lbl">New Sale</span>
+          </div>
+          <div class="dash-qa-btn" onclick="repeatLastSale()">
+            <span class="dash-qa-ico">🔁</span><span class="dash-qa-lbl">Repeat</span>
+          </div>
+          <div class="dash-qa-btn" onclick="openExpenseModal()">
+            <span class="dash-qa-ico">💸</span><span class="dash-qa-lbl">Expense</span>
+          </div>
+          <div class="dash-qa-btn" onclick="switchTab('debts')">
+            <span class="dash-qa-ico">📒</span><span class="dash-qa-lbl">Credit</span>
+          </div>
+          <div class="dash-qa-btn" onclick="openFloatModal()">
+            <span class="dash-qa-ico">💵</span><span class="dash-qa-lbl">Float</span>
+          </div>
+          <div class="dash-qa-btn" onclick="openReturnModal()">
+            <span class="dash-qa-ico">↩️</span><span class="dash-qa-lbl">Return</span>
+          </div>
+          <div class="dash-qa-btn" onclick="openHeatmapModal()">
+            <span class="dash-qa-ico">🕐</span><span class="dash-qa-lbl">Heatmap</span>
+          </div>
+          <div class="dash-qa-btn" onclick="openCashFlowModal()">
+            <span class="dash-qa-ico">💹</span><span class="dash-qa-lbl">Cash Flow</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Smart Insights ── -->
+      <div class="dash-section">
+        <div class="dash-section-head">
+          <span class="dash-section-title">Smart Insights</span>
+        </div>
+        <div id="insights-list"></div>
+      </div>
+
+      <!-- ── Recent Transactions ── -->
+      <div class="dash-section" style="padding-bottom:88px">
+        <div class="dash-section-head">
+          <span class="dash-section-title">Recent Transactions</span>
+          <button class="dash-see-all" onclick="switchTab('history')">See all →</button>
+        </div>
+        <div id="recent-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+    SCREEN: POS / SALES
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-sales">
+    <div class="top-header" style="padding:11px 16px 10px">
+      <div class="th-row">
+        <div class="brand"><div class="brand-logo"><svg viewBox="0 0 32 32" fill="none" width="32" height="32"><rect width="32" height="32" rx="9" fill="var(--acc)"/><rect x="7" y="7" width="8" height="10" rx="2.5" fill="var(--surf)" opacity="0.95"/><rect x="7" y="19" width="8" height="6" rx="2" fill="var(--surf)" opacity="0.6"/><rect x="17" y="7" width="8" height="6" rx="2" fill="var(--surf)" opacity="0.6"/><rect x="17" y="15" width="8" height="10" rx="2.5" fill="var(--surf)" opacity="0.95"/></svg></div><span class="brand-name">PO<span>S</span>H</span></div>
+        <div class="header-actions">
+          <div class="date-pill" id="sales-time"></div>
+          <div class="icon-btn-hdr" onclick="openScannerModal()" title="Scan barcode"
+               >📷</div>
+          <div class="hamburger" onclick="openSidebar()"><div class="ham-line"></div><div class="ham-line"></div><div class="ham-line"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pos-search-bar" style="padding:9px 14px;background:var(--surf);border-bottom:1px solid var(--brd)">
+      <div class="search-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="search-input" id="sales-q" placeholder="Search products or scan barcode…" oninput="renderSales()"/></div>
+    </div>
+    <div class="cat-scroll" id="cat-scroll"></div>
+    <div class="screen-scroll" style="padding-bottom:88px">
+      <div id="fav-area"></div>
+      <div class="products-grid" id="products-grid"></div>
+    </div>
+    <button class="cart-fab" id="cart-fab" onclick="openCart()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <span class="cart-badge" id="cart-badge">0</span>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════
+    SCREEN: INVENTORY / STOCK
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-stock">
+    <div class="screen-sticky-header" style="padding:13px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="screen-title">Inventory</span>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-secondary" style="padding:7px 11px;font-size:11px" onclick="openPurchaseOrderModal()">📋 PO</button>
+          <button class="btn btn-primary" style="padding:8px 13px;font-size:12px" onclick="openProductForm(null)">+ Add</button>
+        </div>
+      </div>
+      <div class="search-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="search-input" id="inv-q" placeholder="Search inventory, supplier…" oninput="renderInv()"/></div>
+    </div>
+    <div class="screen-scroll" style="padding-bottom:72px">
+      <div id="inv-alerts" style="padding:8px 14px 0"></div>
+      <div id="inv-list" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+    SCREEN: REPORTS
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-reports">
+    <div class="screen-sticky-header" style="padding:13px 14px 11px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+        <span class="screen-title">Reports</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary" style="padding:7px 10px;font-size:11px" onclick="exportExcel()">📊 Excel</button>
+          <button class="btn btn-secondary" style="padding:7px 10px;font-size:11px" onclick="exportPDF()">📄 PDF</button>
+        </div>
+      </div>
+      <div class="rpt-tabs">
+        <button class="rpt-tab active" id="rtab-today" onclick="setRptPeriod('today')">Today</button>
+        <button class="rpt-tab" id="rtab-week" onclick="setRptPeriod('week')">Week</button>
+        <button class="rpt-tab" id="rtab-month" onclick="setRptPeriod('month')">Month</button>
+        <button class="rpt-tab" id="rtab-all" onclick="setRptPeriod('all')">All</button>
+      </div>
+    </div>
+    <div class="screen-scroll" style="padding-bottom:72px">
+      <div style="padding:12px 14px;display:flex;flex-direction:column;gap:12px" id="reports-body"></div>
+      <!-- Extra report cards -->
+      <div style="padding:0 14px 12px;display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-secondary btn-full" onclick="openHeatmapModal()">🕐 Hourly Sales Heatmap</button>
+        <button class="btn btn-secondary btn-full" onclick="openCashFlowModal()">💹 Cash Flow Report</button>
+        <button class="btn btn-secondary btn-full" onclick="openProfitabilityModal()">📊 Product Profitability</button>
+        <button class="btn btn-secondary btn-full" onclick="openForecastModal()">🔮 Sales Forecast (7 days)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+    SCREEN: HISTORY
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-history">
+    <div class="screen-sticky-header" style="padding:13px 14px 11px">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px">Transaction History</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button class="rpt-tab active" id="htab-today" onclick="setHistFilter('today')" style="flex:1">Today</button>
+        <button class="rpt-tab" id="htab-week" onclick="setHistFilter('week')" style="flex:1">Week</button>
+        <button class="rpt-tab" id="htab-month" onclick="setHistFilter('month')" style="flex:1">Month</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <div style="flex:1;position:relative"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="search-input" id="hist-q" placeholder="Search transactions…" oninput="renderHistory()" style="width:100%"/></div>
+        <input type="date" id="hist-date-picker" class="field" onchange="setHistDate(this.value)" style="width:130px;padding:10px;font-size:12px;cursor:pointer"/>
+      </div>
+    </div>
+    <div class="screen-scroll" style="padding-bottom:72px">
+      <div id="hist-summary" style="padding:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+      <div id="hist-list" style="padding:0 14px;display:flex;flex-direction:column;gap:7px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+    SCREEN: CREDIT BOOK
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-debts">
+    <div class="screen-sticky-header" style="padding:13px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="screen-title">Credit Book 📒</span>
+        <button class="btn btn-primary" style="padding:8px 13px;font-size:12px" onclick="openDebtModal(null)">+ Add</button>
+      </div>
+      <div class="search-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="search-input" id="debt-q" placeholder="Search customers…" oninput="renderDebts()"/></div>
+    </div>
+    <div class="screen-scroll" style="padding-bottom:72px">
+      <div id="debt-summary-wrap" style="padding:10px 14px 0"></div>
+      <div id="debt-list" style="padding:8px 14px;display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+    SCREEN: CRM / CUSTOMERS (NEW)
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-crm">
+    <div class="screen-sticky-header" style="padding:13px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="screen-title">Customers</span>
+        <button class="btn btn-primary" style="padding:8px 13px;font-size:12px" onclick="openCustomerModal(null)">+ Add</button>
+      </div>
+      <div class="search-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="search-input" id="crm-q" placeholder="Search customers, phone…" oninput="renderCRM()"/></div>
+    </div>
+    <div class="screen-scroll" style="padding-bottom:72px">
+      <div id="crm-summary" style="padding:10px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+      <div id="crm-list" style="padding:0 14px;display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+    SCREEN: STAFF MANAGEMENT (NEW)
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-staff">
+    <div class="screen-sticky-header" style="padding:13px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span class="screen-title">Staff</span>
+        <button class="btn btn-primary" style="padding:8px 13px;font-size:12px" onclick="openStaffModal(null)">+ Add</button>
+      </div>
+    </div>
+    <div class="screen-scroll" style="padding-bottom:72px">
+      <div id="staff-list" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+    SCREEN: SETTINGS
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-settings">
+    <div class="top-header" style="padding:13px 14px"><div class="screen-title">Settings</div></div>
+    <div class="screen-scroll" style="padding-bottom:72px;padding-top:12px">
+
+      <!-- Theme picker -->
+      <div class="settings-section">
+        <div class="settings-title-row"><span class="settings-group-title">Theme</span></div>
+        <div class="settings-group">
+          <div class="settings-row" onclick="openThemeModal()">
+            <div class="sr-icon" style="background:var(--acc-l)">🎨</div>
+            <div class="sr-info"><div class="sr-label">App Theme</div><div class="sr-sub" id="theme-setting-sub">Midnight Gold</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="toggleDark()">
+            <div class="sr-icon" style="background:var(--surf2)">🌙</div>
+            <div class="sr-info"><div class="sr-label">Dark Mode</div><div class="sr-sub" id="dark-mode-sub">Currently On</div></div>
+            <div class="dm-toggle"><div class="toggle-track" id="dm-track"><div class="toggle-thumb"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Business -->
+      <div class="settings-section">
+        <div class="settings-title-row"><span class="settings-group-title">Business</span></div>
+        <div class="settings-group">
+          <div class="settings-row" onclick="openGoalModal()">
+            <div class="sr-icon" style="background:var(--acc-l)">🎯</div>
+            <div class="sr-info"><div class="sr-label">Daily Sales Goal</div><div class="sr-sub" id="goal-setting-val">KSh 6,800</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="openShopNameModal()">
+            <div class="sr-icon" style="background:var(--blue-l)">🏪</div>
+            <div class="sr-info"><div class="sr-label">Shop Name</div><div class="sr-sub" id="shopname-setting-val">POSH</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="openCurrencyModal()">
+            <div class="sr-icon" style="background:var(--green-l)">💱</div>
+            <div class="sr-info"><div class="sr-label">Currency</div><div class="sr-sub" id="currency-setting-val">KES — Kenyan Shilling</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="openTaxModal()">
+            <div class="sr-icon" style="background:var(--amber-l)">🧾</div>
+            <div class="sr-info"><div class="sr-label">VAT / Tax Rate</div><div class="sr-sub" id="tax-setting-val">0% (disabled)</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="openLoyaltyModal()">
+            <div class="sr-icon" style="background:var(--purple-l)">⭐</div>
+            <div class="sr-info"><div class="sr-label">Loyalty Points</div><div class="sr-sub" id="loyalty-setting-val">1 point per KSh 10</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="openIdleModal()">
+            <div class="sr-icon" style="background:var(--orange-l)">⏰</div>
+            <div class="sr-info"><div class="sr-label">Idle Alert Timer</div><div class="sr-sub" id="idle-setting-sub">After 30 mins</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="settings-section">
+        <div class="settings-title-row"><span class="settings-group-title">Notifications</span></div>
+        <div class="settings-group">
+          <div class="settings-row" onclick="enablePushNotifications()">
+            <div class="sr-icon" style="background:var(--blue-l)">🔔</div>
+            <div class="sr-info"><div class="sr-label">Push Notifications</div><div class="sr-sub" id="push-setting-val">Low stock alerts when app is closed</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="settings-section">
+        <div class="settings-title-row"><span class="settings-group-title">Security</span></div>
+        <div class="settings-group">
+          <div class="settings-row" id="setting-change-admin-pin" onclick="openChangePinModal('admin')">
+            <div class="sr-icon" style="background:var(--red-l)">👑</div>
+            <div class="sr-info"><div class="sr-label">Change Admin PIN</div><div class="sr-sub">Update admin 4-digit PIN</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" id="setting-change-staff-pin" onclick="openChangePinModal('staff')">
+            <div class="sr-icon" style="background:var(--purple-l)">👤</div>
+            <div class="sr-info"><div class="sr-label">Change Staff PIN</div><div class="sr-sub">Update staff 4-digit PIN</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="setupBiometric()">
+            <div class="sr-icon" style="background:var(--green-l)">👆</div>
+            <div class="sr-info"><div class="sr-label">Biometric Unlock</div><div class="sr-sub" id="biometric-setting-val">Fingerprint / Face ID</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="openAuditLog()">
+            <div class="sr-icon" style="background:var(--surf2)">📋</div>
+            <div class="sr-info"><div class="sr-label">Audit Log</div><div class="sr-sub">View admin activity</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="lockApp()">
+            <div class="sr-icon" style="background:var(--red-l)">🔒</div>
+            <div class="sr-info"><div class="sr-label">Lock App</div><div class="sr-sub">Return to PIN screen</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data -->
+      <div class="settings-section">
+        <div class="settings-title-row"><span class="settings-group-title">Data &amp; Export</span></div>
+        <div class="settings-group">
+          <div class="settings-row" onclick="backupData()">
+            <div class="sr-icon" style="background:var(--blue-l)">💾</div>
+            <div class="sr-info"><div class="sr-label">Backup Data</div><div class="sr-sub" id="last-backup-sub">Download JSON backup</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="document.getElementById('restore-input').click()">
+            <div class="sr-icon" style="background:var(--purple-l)">📂</div>
+            <div class="sr-info"><div class="sr-label">Restore Data</div><div class="sr-sub">Import backup file</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreData(event)"/>
+          <div class="settings-row" onclick="exportPDF()">
+            <div class="sr-icon" style="background:var(--amber-l)">📄</div>
+            <div class="sr-info"><div class="sr-label">Export PDF Report</div><div class="sr-sub">Formatted sales report</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="exportExcel()">
+            <div class="sr-icon" style="background:var(--green-l)">📊</div>
+            <div class="sr-info"><div class="sr-label">Export to Excel</div><div class="sr-sub">Download .xlsx file</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="exportCSV()">
+            <div class="sr-icon" style="background:var(--surf2)">📝</div>
+            <div class="sr-info"><div class="sr-label">Export CSV</div><div class="sr-sub">Spreadsheet-compatible</div></div>
+            <span class="sr-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="showConfirm('🗑 Clear all sales &amp; expenses?','This cannot be undone.',function(){sales=[];expenses=[];saveData();renderDashboard();toast('🗑 Sales data cleared');},true)">
+            <div class="sr-icon" style="background:var(--red-l)">🗑</div>
+            <div class="sr-info"><div class="sr-label">Clear Sales Data</div><div class="sr-sub">Erase all transactions</div></div>
+            <span class="sr-arrow" style="color:var(--red)">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-title-row"><span class="settings-group-title">Support</span></div>
+        <div class="settings-group">
+          <div class="settings-row" onclick="openDonateModal()" style="border-radius:14px">
+            <div class="sr-icon" style="background:linear-gradient(135deg,#00A67E,#007D5E);font-size:18px">💚</div>
+            <div class="sr-info">
+              <div class="sr-label" style="color:#00A67E">Keep POSH Alive</div>
+              <div class="sr-sub">Buy the dev a mandazi ☕</div>
+            </div>
+            <span class="sr-arrow" style="color:#00A67E">›</span>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;padding:20px;color:var(--muted);font-size:11px;font-weight:600">POSH v4.0 — Point of Sale Hub</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════
+    BOTTOM NAV (7 tabs)
+  ══════════════════════ -->
+  <div class="bottom-nav">
+    <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" id="nav-sales" onclick="switchTab('sales')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 5h14m-9-2a1 1 0 100 2 1 1 0 000-2zm7 0a1 1 0 100 2 1 1 0 000-2z"/></svg>
+      <span>POS</span>
+    </button>
+    <button class="nav-item" id="nav-stock" onclick="switchTab('stock')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      <span>Stock</span>
+    </button>
+    <button class="nav-item" id="nav-reports" onclick="switchTab('reports')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Reports</span>
+    </button>
+    <button class="nav-item" id="nav-history" onclick="switchTab('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>History</span>
+    </button>
+    <button class="nav-item" id="nav-debts" onclick="switchTab('debts')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      <span>Credit</span>
+    </button>
+    <button class="nav-item" id="nav-crm" onclick="switchTab('crm')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <span>CRM</span>
+    </button>
+  </div>
+
+</div><!-- #app -->
+
+<!-- ═══════════════════════════════════
+  OVERLAYS (shared)
+═══════════════════════════════════ -->
+<div class="overlay" id="cart-ov" onclick="closeCart()"></div>
+<div class="overlay" id="receipt-ov" onclick="closeReceipt()" style="z-index:190"></div>
+<div class="overlay" id="pform-ov" onclick="closeProductForm()" style="z-index:190"></div>
+<div class="overlay" id="exp-ov" onclick="closeExpenseModal()" style="z-index:190"></div>
+<div class="overlay" id="debt-ov" onclick="closeDebtModal()" style="z-index:190"></div>
+<div class="overlay" id="gen-ov" onclick="closeGenModal()" style="z-index:190"></div>
+<div class="overlay" id="restock-ov" onclick="closeRestockModal()" style="z-index:190"></div>
+<div class="overlay" id="typemodal-ov" onclick="closeTypeModal()" style="z-index:190"></div>
+<div class="overlay" id="customer-ov" onclick="closeCustomerModal()" style="z-index:190"></div>
+<div class="overlay" id="staff-ov" onclick="closeStaffModal()" style="z-index:190"></div>
+<div class="overlay" id="discount-ov" onclick="closeDiscountModal()" style="z-index:190"></div>
+<div class="overlay" id="return-ov" onclick="closeReturnModal()" style="z-index:190"></div>
+<div class="overlay" id="heatmap-ov" onclick="closeHeatmapModal()" style="z-index:190"></div>
+<div class="overlay" id="cashflow-ov" onclick="closeCashFlowModal()" style="z-index:190"></div>
+<div class="overlay" id="profitability-ov" onclick="closeProfitabilityModal()" style="z-index:190"></div>
+<div class="overlay" id="forecast-ov" onclick="closeForecastModal()" style="z-index:190"></div>
+<div class="overlay" id="po-ov" onclick="closePurchaseOrderModal()" style="z-index:190"></div>
+<div class="overlay" id="audit-ov" onclick="closeAuditLog()" style="z-index:190"></div>
+<div class="overlay" id="float-ov" onclick="closeFloatModal()" style="z-index:190"></div>
+<div class="overlay" id="loyalty-ov" onclick="closeLoyaltyModal()" style="z-index:190"></div>
+<div class="overlay" id="scanner-ov" onclick="closeScannerModal()" style="z-index:190"></div>
+<div class="overlay" id="theme-ov" onclick="closeThemeModal()" style="z-index:190"></div>
+
+<!-- ═══════════════════════════════════
+  CART SHEET
+═══════════════════════════════════ -->
+<div class="cart-sheet" id="cart-sheet">
+  <div class="cs-handle"></div>
+  <div class="cs-header">
+    <span class="cs-title">Cart</span>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn btn-secondary" style="padding:5px 10px;font-size:11px;font-weight:700" onclick="openDiscountModal()">🏷 Discount</button>
+      <button class="cs-clear" onclick="clearCart()">Clear all</button>
+    </div>
+  </div>
+  <div class="cs-discount-bar" id="cs-discount-bar" style="display:none">
+    <span id="cs-discount-label">Discount applied</span>
+    <button onclick="removeDiscount()" style="background:none;border:none;color:var(--red);font-size:12px;cursor:pointer">✕ Remove</button>
+  </div>
+  <div class="cs-items" id="cs-items"></div>
+  <div class="cs-footer">
+    <div class="cs-totals" id="cs-totals"></div>
+    <button class="btn btn-primary btn-full btn-lg" onclick="openCheckout()">
+      <span>Checkout</span><span id="checkout-amount">KSh 0</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  CHECKOUT / RECEIPT MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="receipt-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">Confirm Sale</span><button class="modal-close" onclick="closeReceipt()">×</button></div>
+  <div class="modal-body">
+    <div class="receipt-brand">
+      <div class="receipt-name" id="receipt-shop-name">POSH</div>
+      <div class="receipt-meta" id="receipt-dt"></div>
+    </div>
+    <div class="receipt-items" id="receipt-items"></div>
+    <!-- Customer lookup for loyalty -->
+    <div class="form-group">
+      <label class="field-label">Customer (for loyalty points)</label>
+      <input class="field" id="receipt-customer-lookup" type="text" placeholder="Search customer name or phone…" oninput="lookupCustomerForReceipt(this.value)"/>
+      <div id="customer-lookup-results" class="lookup-dropdown"></div>
+    </div>
+    <!-- Change calculator -->
+    <div class="change-calc">
+      <div class="change-calc-title">💵 Change Calculator</div>
+      <div class="change-row">
+        <span style="font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap">Customer pays</span>
+        <input type="number" id="cash-tendered" placeholder="0" oninput="calcChange()" class="cash-input"/>
+      </div>
+      <div class="quick-amounts" id="quick-amounts"></div>
+      <div class="change-result">
+        <span class="change-label">Change Due</span>
+        <span class="change-value" id="change-due">—</span>
+      </div>
+    </div>
+    <!-- Payment method -->
+    <div class="form-group" style="margin-top:12px">
+      <label class="field-label">Payment Method</label>
+      <select class="field" id="pay-method" onchange="handlePayMethodChange(this.value)">
+        <option value="Cash">Cash</option>
+        <option value="M-Pesa">M-Pesa</option>
+        <option value="Card">Card</option>
+        <option value="Credit">Credit (Customer owes)</option>
+        <option value="Split">Split Payment</option>
+        <option value="Loyalty">Redeem Loyalty Points</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <!-- Credit customer -->
+    <div class="form-group" id="credit-customer-wrap" style="display:none">
+      <label class="field-label">Customer Name (Credit)</label>
+      <input class="field" id="credit-customer" type="text" placeholder="e.g. Mary Wanjiku"/>
+    </div>
+    <!-- Split payment breakdown -->
+    <div id="split-pay-wrap" style="display:none">
+      <div class="split-pay-row">
+        <div class="form-group" style="flex:1;margin-bottom:0"><label class="field-label">Cash (KSh)</label><input class="field" id="split-cash" type="number" placeholder="0" oninput="updateSplitTotal()"/></div>
+        <div class="form-group" style="flex:1;margin-bottom:0"><label class="field-label">M-Pesa (KSh)</label><input class="field" id="split-mpesa" type="number" placeholder="0" oninput="updateSplitTotal()"/></div>
+      </div>
+      <div class="split-remaining" id="split-remaining">Remaining: —</div>
+    </div>
+    <!-- Loyalty redeem -->
+    <div id="loyalty-redeem-wrap" style="display:none">
+      <div class="loyalty-redeem-info" id="loyalty-redeem-info">Customer loyalty points: 0</div>
+    </div>
+    <!-- Note -->
+    <div class="form-group"><label class="field-label">Note (optional)</label><input class="field" id="cust-note" type="text" placeholder="e.g. Regular customer"/></div>
+    <div class="receipt-footer-txt">Asante sana! · Thank you 🙏</div>
+    <div style="display:flex;gap:9px;margin-top:14px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeReceipt()">Back</button>
+      <button class="btn" style="flex:1;background:#25D366;color:white" onclick="shareReceiptWhatsApp()">📲 WhatsApp</button>
+      <button class="btn" style="flex:1;background:#333;color:white" onclick="printThermalReceipt()">🖨 Print</button>
+      <button class="btn btn-primary" style="flex:2" onclick="confirmSale()">Confirm ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  PRODUCT FORM MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="pform-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title" id="pform-title">Add Product</span><button class="modal-close" onclick="closeProductForm()">×</button></div>
+  <div class="modal-body">
+    <div class="form-group">
+      <label class="field-label">Product Photo</label>
+      <div class="emoji-picker" id="emoji-picker">
+        <!-- Populated by product-images.js when form opens -->
+        <div style="text-align:center;padding:18px;color:var(--muted);font-size:12px">
+          Opening photo uploader…
+        </div>
+      </div>
+    </div>
+    <div class="form-group"><label class="field-label">Product Name *</label><input class="field" id="pf-name" type="text" placeholder="e.g. Omena 250g"/></div>
+    <div class="form-group"><label class="field-label">Barcode (optional)</label><div style="display:flex;gap:7px"><input class="field" id="pf-barcode" type="text" placeholder="Scan or type barcode"/><button class="btn btn-secondary" style="padding:10px;flex-shrink:0" onclick="scanBarcodeForProduct()">📷</button></div></div>
+    <!-- Single price -->
+    <div class="form-row" id="pf-price-wrap">
+      <div class="form-group"><label class="field-label">Selling Price *</label><input class="field" id="pf-price" type="number" placeholder="0"/></div>
+    </div>
+    <!-- Dual price (Fish/Omena) -->
+    <div id="pf-price-dual-wrap" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label class="field-label">🐟 Fresh Price *</label><input class="field" id="pf-price-fresh" type="number" placeholder="0"/></div>
+        <div class="form-group"><label class="field-label">🍳 Fried Price *</label><input class="field" id="pf-price-fried" type="number" placeholder="0"/></div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="field-label">Cost Price</label><input class="field" id="pf-cost" type="number" placeholder="0"/></div>
+    </div>
+    <!-- Variants section -->
+    <div class="form-group" id="pf-variants-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+        <label class="field-label" style="margin-bottom:0">Product Variants</label>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:10px" onclick="addVariantRow()">+ Add Variant</button>
+      </div>
+      <div id="pf-variants-list"></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">e.g. Size 1, Size 2 — each with own price &amp; stock</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="field-label">Stock Qty *</label><input class="field" id="pf-stock" type="number" placeholder="0"/></div>
+      <div class="form-group"><label class="field-label">Unit</label><input class="field" id="pf-unit" type="text" placeholder="packet"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="field-label">Category</label><input class="field" id="pf-cat" type="text" placeholder="Fish" oninput="updatePrepFieldVisibility()"/></div>
+      <div class="form-group"><label class="field-label">Low Stock Alert ≤</label><input class="field" id="pf-low" type="number" placeholder="5"/></div>
+    </div>
+    <div class="form-group"><label class="field-label">Supplier</label><input class="field" id="pf-supplier" type="text" placeholder="e.g. Gikomba Market"/></div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeProductForm()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  EXPENSE MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="exp-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">Add Expense</span><button class="modal-close" onclick="closeExpenseModal()">×</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="field-label">Description *</label><input class="field" id="ef-desc" type="text" placeholder="e.g. Transport to market"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="field-label">Amount *</label><input class="field" id="ef-amount" type="number" placeholder="0"/></div>
+      <div class="form-group"><label class="field-label">Category</label>
+        <select class="field" id="ef-cat"><option>Transport</option><option>Rent</option><option>Stock</option><option>Utilities</option><option>Other</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeExpenseModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveExpense()">Add Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  DEBT / CREDIT MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="debt-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title" id="debt-modal-title">Add Credit Sale</span><button class="modal-close" onclick="closeDebtModal()">×</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="field-label">Customer Name *</label><input class="field" id="df-name" type="text" placeholder="e.g. Mary Wanjiku"/></div>
+    <div class="form-group"><label class="field-label">Phone (optional)</label><input class="field" id="df-phone" type="tel" placeholder="e.g. 0712 345 678"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="field-label">Amount Owed *</label><input class="field" id="df-amount" type="number" placeholder="0"/></div>
+      <div class="form-group"><label class="field-label">Amount Paid</label><input class="field" id="df-paid" type="number" placeholder="0"/></div>
+    </div>
+    <div class="form-group"><label class="field-label">Payment Method (if paid)</label>
+      <select class="field" id="df-paymethod"><option value="">— Select —</option><option>Cash</option><option>M-Pesa</option><option>Card</option><option>Other</option></select>
+    </div>
+    <div class="form-group"><label class="field-label">Items / Description</label><input class="field" id="df-items" type="text" placeholder="e.g. Omena ×2, Rice ×1"/></div>
+    <div class="form-group"><label class="field-label">Due Date (optional)</label><input class="field" id="df-due" type="date"/></div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeDebtModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveDebt()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  GENERIC MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="gen-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title" id="gen-title">Setting</span><button class="modal-close" onclick="closeGenModal()">×</button></div>
+  <div class="modal-body" id="gen-body"></div>
+</div>
+
+<!-- ═══════════════════════════════════
+  RESTOCK MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="restock-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title" id="restock-title">Add Stock</span><button class="modal-close" onclick="closeRestockModal()">×</button></div>
+  <div class="modal-body">
+    <div class="restock-preview">
+      <div><div style="font-size:12px;color:var(--muted);font-weight:600">Current</div><div style="font-size:22px;font-weight:800;color:var(--text)" id="restock-current">0</div></div>
+      <div style="font-size:32px" id="restock-emoji">🐟</div>
+      <div style="text-align:right"><div style="font-size:12px;color:var(--muted);font-weight:600">After</div><div style="font-size:22px;font-weight:800;color:var(--acc)" id="restock-after">0</div></div>
+    </div>
+    <div class="form-group"><label class="field-label">Quantity to Add *</label><input class="field" id="restock-qty" type="number" placeholder="e.g. 10" min="1" oninput="previewRestock()" style="font-size:20px;font-weight:700;text-align:center"/></div>
+    <div class="quick-amounts" style="margin-bottom:14px">
+      <div class="qa-amount" onclick="setRestockQty(5)">+5</div>
+      <div class="qa-amount" onclick="setRestockQty(10)">+10</div>
+      <div class="qa-amount" onclick="setRestockQty(20)">+20</div>
+      <div class="qa-amount" onclick="setRestockQty(50)">+50</div>
+      <div class="qa-amount" onclick="setRestockQty(100)">+100</div>
+    </div>
+    <div class="form-group"><label class="field-label">Restock Cost (optional)</label><input class="field" id="restock-cost" type="number" placeholder="Total spent on this stock"/></div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeRestockModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveRestock()">📦 Add Stock</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  TYPE MODAL (Fresh vs Fried)
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="typemodal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title" id="typemodal-title">Select Type</span><button class="modal-close" onclick="closeTypeModal()">×</button></div>
+  <div class="modal-body">
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;font-weight:600">How would you like this?</p>
+    <div id="typemodal-opts" style="display:flex;flex-direction:column;gap:11px"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  CUSTOMER (CRM) MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="customer-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title" id="customer-modal-title">Add Customer</span><button class="modal-close" onclick="closeCustomerModal()">×</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="field-label">Full Name *</label><input class="field" id="cm-name" type="text" placeholder="e.g. Mary Wanjiku"/></div>
+    <div class="form-group"><label class="field-label">Phone Number</label><input class="field" id="cm-phone" type="tel" placeholder="e.g. 0712 345 678"/></div>
+    <div class="form-group"><label class="field-label">Email (optional)</label><input class="field" id="cm-email" type="email" placeholder="e.g. mary@email.com"/></div>
+    <div class="form-group"><label class="field-label">Notes</label><input class="field" id="cm-notes" type="text" placeholder="e.g. Prefers fried fish, pays weekly"/></div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeCustomerModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveCustomer()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  STAFF MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="staff-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <span class="modal-title">👥 Staff Accounts</span>
+    <button class="modal-close" onclick="closeStaffModal()">×</button>
+  </div>
+  <div class="modal-body" style="padding:0">
+
+    <!-- Staff list panel -->
+    <div id="staff-list-panel" style="display:block">
+      <!-- Shop code sharing -->
+      <div style="margin:14px 14px 0;padding:13px 14px;background:var(--acc-l,rgba(255,184,0,.1));
+                  border:1.5px solid var(--acc);border-radius:14px">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+          Shop Code — share with staff
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span id="staff-shop-code-display" style="font-size:24px;font-weight:900;letter-spacing:4px;color:var(--acc);font-family:monospace"></span>
+          <button onclick="copyShopCode()" style="padding:7px 12px;background:var(--acc);color:var(--surf);border:none;
+                  border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📋 Copy</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">
+          Staff enter this code when logging in. Each staff member also needs their own Name &amp; PIN below.
+        </div>
+      </div>
+
+      <!-- Add button -->
+      <div style="padding:12px 14px 8px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;font-weight:700;color:var(--muted)">Staff Members</span>
+        <button class="btn btn-primary" style="padding:7px 14px;font-size:12px" onclick="openAddStaffModal()">+ Add Staff</button>
+      </div>
+
+      <!-- List -->
+      <div id="staff-accounts-list" style="padding:0 14px 20px;display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- Staff add/edit form panel -->
+    <div id="staff-form-panel" style="display:none;padding:14px">
+      <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:16px" id="staff-form-title">+ Add Staff Member</div>
+      <div class="form-group">
+        <label class="field-label">Full Name *</label>
+        <input class="field" id="staff-form-name" type="text" placeholder="e.g. Jane Kamau"/>
+      </div>
+      <div class="form-group">
+        <label class="field-label">4-digit PIN *</label>
+        <input class="field" id="staff-form-pin" type="password" inputmode="numeric" maxlength="4" placeholder="••••"/>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Confirm PIN *</label>
+        <input class="field" id="staff-form-pin2" type="password" inputmode="numeric" maxlength="4" placeholder="••••"
+               onkeydown="if(event.key==='Enter')saveStaff()"/>
+      </div>
+      <div id="staff-form-error" style="display:none;font-size:12px;color:var(--red,#dc3232);
+           background:rgba(220,50,50,.08);border:1px solid rgba(220,50,50,.25);border-radius:10px;
+           padding:9px 12px;margin-bottom:12px;font-weight:600"></div>
+      <div style="display:flex;gap:9px;margin-top:4px">
+        <button class="btn btn-secondary" style="flex:1" onclick="cancelStaffForm()">Cancel</button>
+        <button class="btn btn-primary" style="flex:2" onclick="saveStaff()">Save</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  DISCOUNT MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="discount-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">Apply Discount</span><button class="modal-close" onclick="closeDiscountModal()">×</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="field-label">Discount Type</label>
+      <div style="display:flex;gap:8px">
+        <button class="discount-type-btn active" id="disc-pct-btn" onclick="setDiscountType('percent')">% Percentage</button>
+        <button class="discount-type-btn" id="disc-flat-btn" onclick="setDiscountType('flat')">KSh Fixed</button>
+      </div>
+    </div>
+    <div class="form-group"><label class="field-label" id="disc-amount-label">Discount %</label><input class="field" id="disc-amount" type="number" placeholder="e.g. 10" min="0"/></div>
+    <div class="form-group"><label class="field-label">Reason / Code (optional)</label><input class="field" id="disc-reason" type="text" placeholder="e.g. Loyal customer, CODE2024"/></div>
+    <div class="discount-preview" id="disc-preview"></div>
+    <div style="display:flex;gap:9px;margin-top:12px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeDiscountModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="applyDiscount()">Apply Discount</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  RETURNS / REFUND MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="return-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">Process Return / Refund</span><button class="modal-close" onclick="closeReturnModal()">×</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="field-label">Transaction ID</label><input class="field" id="ret-txn-id" type="text" placeholder="e.g. #4821 or paste full ID" oninput="lookupReturnTxn(this.value)"/></div>
+    <div id="ret-txn-preview" style="margin-bottom:12px"></div>
+    <div class="form-group"><label class="field-label">Reason for Return</label>
+      <select class="field" id="ret-reason"><option>Customer changed mind</option><option>Wrong item</option><option>Damaged / spoiled</option><option>Other</option></select>
+    </div>
+    <div class="form-group"><label class="field-label">Refund Amount</label><input class="field" id="ret-amount" type="number" placeholder="0"/></div>
+    <div class="form-group"><label class="field-label">Refund Method</label>
+      <select class="field" id="ret-method"><option>Cash</option><option>M-Pesa</option><option>Store Credit</option></select>
+    </div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeReturnModal()">Cancel</button>
+      <button class="btn btn-danger" style="flex:2" onclick="processReturn()">↩️ Process Refund</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  FLOAT MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="float-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title" id="float-modal-title">Opening Float</span><button class="modal-close" onclick="closeFloatModal()">×</button></div>
+  <div class="modal-body">
+    <div id="float-open-form">
+      <div class="form-group"><label class="field-label">Opening Cash Float *</label><input class="field" id="float-open-amount" type="number" placeholder="e.g. 2000" style="font-size:20px;font-weight:700;text-align:center"/></div>
+      <div class="form-group"><label class="field-label">Opened by</label><input class="field" id="float-opened-by" type="text" placeholder="Your name"/></div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="openShiftFloat()">🟢 Open Shift</button>
+    </div>
+    <div id="float-close-form" style="display:none">
+      <div class="float-summary-grid" id="float-summary"></div>
+      <div class="form-group" style="margin-top:12px"><label class="field-label">Actual Cash Count *</label><input class="field" id="float-close-amount" type="number" placeholder="Count the cash in drawer" oninput="calcFloatVariance()"/></div>
+      <div class="float-variance" id="float-variance"></div>
+      <button class="btn btn-danger btn-full btn-lg" style="margin-top:12px" onclick="closeShiftFloat()">🔴 Close Shift</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  PURCHASE ORDER MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="po-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">Purchase Orders</span><button class="modal-close" onclick="closePurchaseOrderModal()">×</button></div>
+  <div class="modal-body">
+    <div id="po-list-view">
+      <div id="po-low-stock-items" style="margin-bottom:14px"></div>
+      <button class="btn btn-primary btn-full" onclick="createPurchaseOrder()">📋 Create POS from Low Stock</button>
+      <div style="margin-top:14px" id="po-history-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  BARCODE SCANNER MODAL  (implemented by barcode.js)
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="scanner-modal" style="z-index:210">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <span class="modal-title" id="scanner-modal-title">📷 Scan Barcode</span>
+    <button class="modal-close" onclick="closeScannerModal()">×</button>
+  </div>
+  <div class="modal-body" style="padding:0">
+
+    <!-- Camera viewport -->
+    <div id="scanner-cam-wrap"
+         style="position:relative;width:100%;height:255px;background:#000;overflow:hidden">
+      <video id="scanner-video" autoplay playsinline muted
+             style="width:100%;height:100%;object-fit:cover;display:block"></video>
+
+      <!-- Viewfinder overlay -->
+      <div style="position:absolute;inset:0;display:flex;align-items:center;
+                  justify-content:center;pointer-events:none">
+        <div class="sc-vf">
+          <div class="sc-vf-shadow"></div>
+          <div class="sc-vf-br"></div>
+          <div id="scanner-sweep"
+               style="position:absolute;left:6px;right:6px;height:2px;
+                      background:linear-gradient(90deg,transparent,var(--acc),transparent);
+                      border-radius:2px;pointer-events:none"></div>
+        </div>
+      </div>
+
+      <!-- Torch toggle (shown only when hardware supports it) -->
+      <button id="scanner-torch-btn" onclick="toggleScannerTorch()"
+              style="display:none;position:absolute;top:10px;right:10px;
+                     background:rgba(0,0,0,.6);border:none;border-radius:50%;
+                     width:38px;height:38px;font-size:17px;cursor:pointer;
+                     color:white;z-index:2">🔦</button>
+
+      <!-- Camera-unavailable state -->
+      <div id="scanner-no-cam"
+           style="display:none;position:absolute;inset:0;
+                  flex-direction:column;align-items:center;justify-content:center;
+                  background:#000;color:rgba(255,255,255,.7);text-align:center;
+                  padding:20px">
+        <div style="font-size:40px;margin-bottom:8px">📷</div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">Camera unavailable</div>
+        <div style="font-size:11px;opacity:.7">Allow camera access or use manual entry below</div>
+      </div>
+
+      <!-- Status bar -->
+      <div id="scanner-status"
+           style="position:absolute;bottom:0;left:0;right:0;
+                  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+                  padding:6px 14px;text-align:center;
+                  color:rgba(255,255,255,.85);font-size:12px;font-weight:600">
+        Align barcode within the frame
+      </div>
+    </div>
+
+    <!-- Scan result / feedback chip -->
+    <div id="scanner-feedback" style="padding:10px 14px 0;min-height:0"></div>
+
+    <!-- Not-found strip with "Add Product" shortcut -->
+    <div id="scanner-notfound-strip" style="display:none;padding:0 14px 6px">
+      <div class="sc-notfound-chip">
+        <span style="font-size:22px">❓</span>
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--muted);font-weight:700">Product not found</div>
+          <div id="scanner-notfound-code" style="font-size:13px;font-weight:800;color:var(--text)"></div>
+        </div>
+        <button class="btn btn-primary"
+                style="padding:7px 12px;font-size:11px;white-space:nowrap"
+                onclick="scannerCreateProduct()">+ Add Product</button>
+      </div>
+    </div>
+
+    <!-- Manual entry fallback -->
+    <div style="padding:12px 14px 6px">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);
+                  text-transform:uppercase;letter-spacing:.5px;
+                  text-align:center;margin-bottom:8px">
+        Or enter barcode manually
+      </div>
+      <div style="display:flex;gap:8px">
+        <input class="field" id="scanner-manual-input"
+               type="text" inputmode="numeric"
+               placeholder="Type or paste barcode…"
+               style="flex:1"
+               onkeydown="if(event.key==='Enter')submitManualBarcode()"/>
+        <button class="btn btn-primary"
+                style="padding:10px 16px;font-size:14px;font-weight:800"
+                onclick="submitManualBarcode()">→</button>
+      </div>
+    </div>
+
+    <!-- Session scan history (POS mode) -->
+    <div id="scanner-recent-wrap" style="display:none;padding:6px 14px 14px">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);
+                  text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">
+        Just added
+      </div>
+      <div id="scanner-recent-list" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  HEATMAP MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="heatmap-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">🕐 Hourly Sales Heatmap</span><button class="modal-close" onclick="closeHeatmapModal()">×</button></div>
+  <div class="modal-body">
+    <p style="font-size:11px;color:var(--muted);margin-bottom:14px">Darker = more sales. Shows your busiest hours over the past 30 days.</p>
+    <div id="heatmap-grid" class="heatmap-grid"></div>
+    <div class="heatmap-legend"><span style="font-size:10px;color:var(--muted)">Low</span><div class="heatmap-legend-bar"></div><span style="font-size:10px;color:var(--muted)">High</span></div>
+    <div id="heatmap-insights" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  CASH FLOW MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="cashflow-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">💹 Cash Flow</span><button class="modal-close" onclick="closeCashFlowModal()">×</button></div>
+  <div class="modal-body">
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="rpt-tab active" id="cftab-7" onclick="setCashFlowPeriod(7,this)">7 Days</button>
+      <button class="rpt-tab" id="cftab-30" onclick="setCashFlowPeriod(30,this)">30 Days</button>
+    </div>
+    <div id="cashflow-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  PROFITABILITY MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="profitability-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">📊 Product Profitability</span><button class="modal-close" onclick="closeProfitabilityModal()">×</button></div>
+  <div class="modal-body">
+    <div id="profitability-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  FORECAST MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="forecast-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">🔮 Sales Forecast</span><button class="modal-close" onclick="closeForecastModal()">×</button></div>
+  <div class="modal-body">
+    <p style="font-size:11px;color:var(--muted);margin-bottom:14px">Based on your last 30 days of sales data.</p>
+    <div id="forecast-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  AUDIT LOG MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="audit-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">📋 Audit Log</span><button class="modal-close" onclick="closeAuditLog()">×</button></div>
+  <div class="modal-body">
+    <div id="audit-list" style="display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  LOYALTY MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="loyalty-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">⭐ Loyalty Points</span><button class="modal-close" onclick="closeLoyaltyModal()">×</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="field-label">Earn rate</label>
+      <select class="field" id="loyalty-earn-rate">
+        <option value="10">1 point per KSh 10</option>
+        <option value="20">1 point per KSh 20</option>
+        <option value="50">1 point per KSh 50</option>
+        <option value="100">1 point per KSh 100</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="field-label">Redeem rate</label>
+      <select class="field" id="loyalty-redeem-rate">
+        <option value="1">1 point = KSh 1</option>
+        <option value="2">2 points = KSh 1</option>
+        <option value="5">5 points = KSh 1</option>
+        <option value="10">10 points = KSh 1</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:9px;margin-top:12px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeLoyaltyModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveLoyaltySettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  THEME PICKER MODAL
+═══════════════════════════════════ -->
+<div class="modal-sheet" id="theme-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header"><span class="modal-title">🎨 App Theme</span><button class="modal-close" onclick="closeThemeModal()">×</button></div>
+  <div class="modal-body">
+    <div class="theme-picker-grid" id="theme-picker-grid">
+      <div class="theme-opt" data-theme="midnight" onclick="applyTheme('midnight',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#080C14,#FFB800)"></div>
+        <div class="theme-label">Midnight Gold</div>
+      </div>
+      <div class="theme-opt" data-theme="emerald" onclick="applyTheme('emerald',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#F0F4F8,#00A67E)"></div>
+        <div class="theme-label">Emerald Classic</div>
+      </div>
+      <div class="theme-opt" data-theme="terracotta" onclick="applyTheme('terracotta',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#FFF5EE,#E8521A)"></div>
+        <div class="theme-label">Warm Terracotta</div>
+      </div>
+      <div class="theme-opt" data-theme="ocean" onclick="applyTheme('ocean',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#EEF4FC,#1B6FE8)"></div>
+        <div class="theme-label">Ocean Pro</div>
+      </div>
+      <div class="theme-opt" data-theme="obsidian" onclick="applyTheme('obsidian',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#0C0C0E,#AAFF00)"></div>
+        <div class="theme-label">Obsidian Lime</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  CONFIRM MODAL
+═══════════════════════════════════ -->
+<div class="confirm-modal" id="confirm-modal">
+  <div class="confirm-bg" onclick="closeConfirm()"></div>
+  <div class="confirm-card">
+    <span class="confirm-icon" id="confirm-icon">⚠️</span>
+    <div class="confirm-title" id="confirm-title">Are you sure?</div>
+    <div class="confirm-sub" id="confirm-sub">This action cannot be undone.</div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-ok" id="confirm-ok" onclick="doConfirm()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  PWA INSTALL BANNER
+═══════════════════════════════════ -->
+<div class="pwa-banner" id="pwa-banner">
+  <div class="pwa-banner-icon">
+    <svg viewBox="0 0 32 32" fill="none" width="28" height="28"><rect width="32" height="32" rx="9" fill="var(--acc)"/><rect x="7" y="7" width="8" height="10" rx="2.5" fill="var(--surf)" opacity="0.95"/><rect x="7" y="19" width="8" height="6" rx="2" fill="var(--surf)" opacity="0.6"/><rect x="17" y="7" width="8" height="6" rx="2" fill="var(--surf)" opacity="0.6"/><rect x="17" y="15" width="8" height="10" rx="2.5" fill="var(--surf)" opacity="0.95"/></svg>
+  </div>
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Install POSH App</div>
+    <div class="pwa-banner-sub">Add to home screen for quick access</div>
+  </div>
+  <div class="pwa-banner-btns">
+    <button class="pwa-install-btn" onclick="installPWA()">Install</button>
+    <button class="pwa-later-btn" onclick="dismissPWA()">Later</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+  THERMAL RECEIPT — Hidden div, shown only via @media print
+═══════════════════════════════════ -->
+<div id="print-receipt">
+
+  <div class="pr-header">
+    <div class="pr-shop-name" id="pr-shop-name">POSH</div>
+    <div class="pr-tagline" id="pr-tagline"></div>
+    <div class="pr-dashes"></div>
+    <div class="pr-meta-row">
+      <span id="pr-receipt-num">#0000</span>
+      <span id="pr-dt"></span>
+    </div>
+    <div class="pr-dashes"></div>
+  </div>
+
+  <div class="pr-col-heads">
+    <span class="pr-col-item">ITEM</span>
+    <span class="pr-col-qty">QTY</span>
+    <span class="pr-col-price">UNIT</span>
+    <span class="pr-col-total">TOTAL</span>
+  </div>
+  <div class="pr-dashes"></div>
+
+  <div id="pr-items"></div>
+
+  <div class="pr-dashes pr-dashes--solid"></div>
+
+  <div id="pr-totals"></div>
+
+  <div class="pr-dashes pr-dashes--equals"></div>
+
+  <div class="pr-pay-row" id="pr-pay-row"></div>
+
+  <div class="pr-dashes"></div>
+
+  <!-- QR placeholder — offline-safe inline SVG, no library needed -->
+  <div class="pr-qr-wrap">
+    <svg class="pr-qr" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg" aria-label="Receipt QR placeholder">
+      <!-- Top-left finder pattern -->
+      <rect x="1" y="1" width="7" height="7" fill="none" stroke="#000" stroke-width=".8"/>
+      <rect x="3" y="3" width="3" height="3" fill="#000"/>
+      <!-- Top-right finder pattern -->
+      <rect x="13" y="1" width="7" height="7" fill="none" stroke="#000" stroke-width=".8"/>
+      <rect x="15" y="3" width="3" height="3" fill="#000"/>
+      <!-- Bottom-left finder pattern -->
+      <rect x="1" y="13" width="7" height="7" fill="none" stroke="#000" stroke-width=".8"/>
+      <rect x="3" y="15" width="3" height="3" fill="#000"/>
+      <!-- Decorative data modules -->
+      <rect x="9"  y="1"  width="2" height="1" fill="#000"/>
+      <rect x="9"  y="4"  width="1" height="2" fill="#000"/>
+      <rect x="11" y="3"  width="2" height="1" fill="#000"/>
+      <rect x="9"  y="8"  width="1" height="2" fill="#000"/>
+      <rect x="11" y="9"  width="2" height="2" fill="#000"/>
+      <rect x="13" y="9"  width="1" height="2" fill="#000"/>
+      <rect x="15" y="9"  width="2" height="1" fill="#000"/>
+      <rect x="18" y="9"  width="2" height="2" fill="#000"/>
+      <rect x="9"  y="11" width="2" height="2" fill="#000"/>
+      <rect x="1"  y="9"  width="2" height="2" fill="#000"/>
+      <rect x="4"  y="9"  width="3" height="1" fill="#000"/>
+      <rect x="9"  y="14" width="1" height="3" fill="#000"/>
+      <rect x="11" y="13" width="2" height="2" fill="#000"/>
+      <rect x="14" y="13" width="1" height="4" fill="#000"/>
+      <rect x="16" y="14" width="3" height="1" fill="#000"/>
+      <rect x="11" y="16" width="3" height="2" fill="#000"/>
+      <rect x="16" y="17" width="2" height="2" fill="#000"/>
+      <rect x="19" y="16" width="1" height="1" fill="#000"/>
+    </svg>
+    <div class="pr-qr-label">Scan to verify purchase</div>
+  </div>
+
+  <div class="pr-dashes"></div>
+
+  <div class="pr-footer">
+    <div class="pr-footer-thanks">Thank you for shopping at</div>
+    <div class="pr-footer-shop" id="pr-footer-shop">POSH</div>
+    <div class="pr-footer-sub">Asante sana! 🙏</div>
+    <div class="pr-footer-powered">Powered by POSH POS</div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════
+  DONATE MODAL
+══════════════════════ -->
+<div class="overlay" id="donate-ov" onclick="closeDonateModal()" style="z-index:190"></div>
+<div class="modal-sheet" id="donate-modal" style="z-index:200">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <span class="modal-title">Support POSH</span>
+    <button class="modal-close" onclick="closeDonateModal()">×</button>
+  </div>
+  <div class="modal-body" style="padding-bottom:32px">
+
+    <!-- Hero -->
+    <div style="text-align:center;padding:18px 0 10px">
+      <div style="font-size:52px;line-height:1;margin-bottom:8px">💚</div>
+      <div style="font-size:19px;font-weight:900;color:var(--text);letter-spacing:-.3px">POSH runs on passion.</div>
+      <div style="font-size:19px;font-weight:900;color:var(--text);letter-spacing:-.3px">And your support.</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5">
+        This app is free — no ads, no subscriptions.<br>
+        If it's made your hustle easier, consider sending something small.
+      </div>
+    </div>
+
+    <!-- Pochi card — number injected by openDonateModal() from POSH_DONATE config -->
+    <div style="background:linear-gradient(135deg,#005C3B,#00A67E);border-radius:20px;padding:22px 20px;margin:16px 0;position:relative;overflow:hidden">
+      <!-- decorative circles -->
+      <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.07)"></div>
+      <div style="position:absolute;bottom:-40px;left:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.05)"></div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:6px 10px;font-size:11px;font-weight:800;color:#fff;letter-spacing:.5px">POCHI LA BIASHARA</div>
+        <div style="background:#00C176;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:#fff">M-PESA</div>
+      </div>
+
+      <div style="color:rgba(255,255,255,.75);font-size:11px;font-weight:600;margin-bottom:4px;letter-spacing:.5px">SEND TO</div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <!-- Number is set dynamically by openDonateModal() — never hardcoded here -->
+        <div style="font-size:32px;font-weight:900;color:#fff;letter-spacing:2px" id="donate-number">— — —</div>
+        <button onclick="copyDonateNumber()" style="background:rgba(255,255,255,.2);border:none;border-radius:10px;padding:8px 14px;color:#fff;font-size:12px;font-weight:700;cursor:pointer" id="donate-copy-btn">Copy</button>
+      </div>
+      <div style="color:rgba(255,255,255,.65);font-size:11px;margin-top:8px">Any amount is appreciated 🙏</div>
+    </div>
+
+    <!-- Steps — correct Pochi la Biashara path -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin:16px 0 8px">HOW TO SEND</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+
+      <div style="display:flex;align-items:center;gap:12px;background:var(--surf2);border-radius:12px;padding:11px 14px">
+        <div style="width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+        <div style="font-size:13px;color:var(--text)">Open <strong>M-Pesa</strong> menu</div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:12px;background:var(--surf2);border-radius:12px;padding:11px 14px">
+        <div style="width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</div>
+        <div style="font-size:13px;color:var(--text)">
+          Tap <strong>Lipa na M-Pesa</strong>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Not "Send Money" — use Lipa na M-Pesa</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:12px;background:var(--surf2);border-radius:12px;padding:11px 14px">
+        <div style="width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</div>
+        <div style="font-size:13px;color:var(--text)">
+          Tap <strong>Pochi la Biashara</strong>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">It's listed under Lipa na M-Pesa options</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:12px;background:var(--surf2);border-radius:12px;padding:11px 14px">
+        <div style="width:26px;height:26px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">4</div>
+        <div style="font-size:13px;color:var(--text)">
+          Enter the number shown above → verify the name → send
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Even <strong>KSh 50</strong> keeps the lights on ✨</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Thank you note -->
+    <div style="text-align:center;margin-top:20px;font-size:12px;color:var(--muted);line-height:1.6">
+      Built with ❤️ in Nairobi.<br>
+      <span style="font-style:italic">Asante sana for using POSH.</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Hidden input for restoring image backups (accepts posh-images-*.json) -->
+<input type="file" id="img-restore-input" accept=".json" style="display:none"
+       onchange="restoreData(event)"/>
+
+<!-- Scripts -->
+<script type="module" src="firebase.js"></script>
+<script type="module" src="firebase-auth.js"></script>
+<script src="app.js"></script>
+<script src="quickwins.js"></script>
+<script src="staff.js"></script>
+<script src="barcode.js"></script>
+<script src="features.js"></script>
+<script src="product-images.js"></script>
+</body>
+</html>
