@@ -232,7 +232,7 @@ function loadData(){
     if(d.staffPin)staffPin=d.staffPin;
     else if(d.userPin)staffPin=d.userPin; // migrate old single pin
     if(typeof d.darkMode==='boolean'){darkMode=d.darkMode;}
-    if(d.idleMinutes)idleMinutes=d.idleMinutes;
+    if(typeof d.idleMinutes==='number')idleMinutes=d.idleMinutes;
     if(d.nextId)nextId=d.nextId;
     if(d.nextDebtId)nextDebtId=d.nextDebtId;
     if(d.staffAccounts)window.staffAccounts=d.staffAccounts;
@@ -275,7 +275,11 @@ function calcProfit(s){return s.items.reduce((sum,i)=>{
     var totalCost=i.cost||0;
     return sum+(i.price-totalCost);
   }
-  var unitCost=p?p.cost:(i.unitCost!=null?i.unitCost:(i.cost||0));
+  // BUG FIX: prioritise the cost stored on the sale item (captured at cart-add
+  // time) over the live product cost.  Using p.cost when the product still
+  // exists meant that editing a product's cost retroactively changed every
+  // historical profit figure — exactly the same problem as deleted products.
+  var unitCost=(i.unitCost!=null)?i.unitCost:((i.cost!=null)?i.cost:(p?p.cost:0));
   return sum+(i.price-unitCost)*i.qty;
 },0);}
 function cartTotal(){return cart.reduce((s,x)=>s+x.price*x.qty,0);}
@@ -386,7 +390,7 @@ function openIdleModal(){
     </div>
     <div style="display:flex;gap:9px">
       <button class="btn btn-secondary" style="flex:1" onclick="closeGenModal()">Cancel</button>
-      <button class="btn btn-primary" style="flex:2" onclick="idleMinutes=parseInt(document.getElementById('idle-input').value)||30;document.getElementById('idle-setting-sub').textContent=idleMinutes===0?'Disabled':'Alert after '+idleMinutes+' mins no sales';saveData();resetIdleTimer();closeGenModal();toast('✅ Idle timer updated');">Save</button>
+      <button class="btn btn-primary" style="flex:2" onclick="var _iv=parseInt(document.getElementById('idle-input').value,10);idleMinutes=isNaN(_iv)?30:_iv;document.getElementById('idle-setting-sub').textContent=idleMinutes===0?'Disabled':'Alert after '+idleMinutes+' mins no sales';saveData();resetIdleTimer();closeGenModal();toast('✅ Idle timer updated');">Save</button>
     </div>`);
 }
 
@@ -416,6 +420,9 @@ function checkPin(){
       document.getElementById('pin-hint').textContent='Confirm your new '+changePinTarget+' PIN';
     } else if(newPinStep===1){
       if(pinEntry===newPinTemp){
+        // BUG FIX: capture target BEFORE clearing state — changePinTarget is
+        // reset to '' below, so reading it after the reset always gave 'Staff'.
+        var _pinTargetLabel=changePinTarget==='admin'?'Admin':'Staff';
         if(changePinTarget==='admin')adminPin=pinEntry;
         else staffPin=pinEntry;
         saveData();
@@ -426,7 +433,7 @@ function checkPin(){
         document.getElementById('app').style.display='flex';
         document.getElementById('app').style.flexDirection='column';
         document.getElementById('app').style.minHeight='100vh';
-        toast('✅ '+(changePinTarget==='admin'?'Admin':'Staff')+' PIN updated!');
+        toast('✅ '+_pinTargetLabel+' PIN updated!');
         applyRoleAccess();
       } else {
         shakeDots();
@@ -1050,7 +1057,8 @@ function confirmSale(){
     // Bulk: qty is in units (kg/litres), deduct directly
     p.stock=Math.max(0,Math.round((p.stock-ci.qty)*100)/100);
   });
-  sales.push({id:Date.now(),ts:Date.now(),total,payment,note,items});
+  var saleTs=Date.now();
+  sales.push({id:saleTs,ts:saleTs,total,payment,note,items});
   // auto-add to credit book if paid by Credit
   var custName='';
   if(payment==='Credit'){
@@ -1774,10 +1782,15 @@ function exportPDF(){
 // ═════════════════════════════════════
 //  🎉 CONFETTI
 // ═════════════════════════════════════
-var _confettiFired=false;
+// BUG FIX: _confettiFired was reset to false when the animation ended, so
+// renderDashboard() (called on every tab switch) would re-fire confetti
+// whenever today's revenue exceeded the goal.  Use a date key instead so
+// confetti fires at most once per calendar day.
+var _confettiDate=null;
 function fireConfetti(){
-  if(_confettiFired)return;
-  _confettiFired=true;
+  var today=todayKey();
+  if(_confettiDate===today)return;
+  _confettiDate=today;
   var canvas=document.createElement('canvas');
   canvas.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:700';
   document.body.appendChild(canvas);
@@ -1807,7 +1820,7 @@ function fireConfetti(){
     });
     frames++;
     if(frames<160)requestAnimationFrame(draw);
-    else{canvas.remove();_confettiFired=false;}
+    else{canvas.remove();}
   }
   draw();
   toast('🎉 Daily goal reached! Amazing!');
@@ -1880,8 +1893,17 @@ function renderSparklines(){
     profData.push(daySales.reduce(function(s,x){return s+calcProfit(x);},0));
     txnData.push(daySales.length);
   }
-  // stock levels over time - just use products low/ok count
-  for(var j=0;j<7;j++) stockData.push(products.filter(function(p){return p.stock>0;}).length-(j*0));
+  // BUG FIX: j*0 is always 0, making every point identical (flat line).
+  // Estimate historical stock for each day by starting from current total
+  // stock and adding back the quantity of items sold after that day.
+  var currentTotalStock=products.reduce(function(s,p){return s+(p.stock||0);},0);
+  for(var j=0;j<7;j++){
+    var dayDate=new Date();dayDate.setDate(dayDate.getDate()-(6-j));
+    var dayStart=new Date(dayDate.getFullYear(),dayDate.getMonth(),dayDate.getDate()).getTime();
+    var soldAfter=sales.filter(function(s){return s.ts>dayStart;})
+      .reduce(function(total,s){return total+s.items.reduce(function(t,i){return t+(getProdType({prodType:i.prodType})==='service'?0:(i.qty||0));},0);},0);
+    stockData.push(Math.max(0,currentTotalStock+soldAfter));
+  }
   drawSparkline('spark-sales',revData,'#00A67E');
   drawSparkline('spark-profit',profData,'#F59E0B');
   drawSparkline('spark-txns',txnData,'#3B82F6');
