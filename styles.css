@@ -723,6 +723,17 @@ input,select,textarea{font-family:var(--font)}
 /* Loyalty section */
 .loyalty-section{background:var(--purple-l);border:1px solid var(--purple);border-radius:12px;padding:11px;margin-top:8px}
 .loyalty-points-available{font-size:13px;font-weight:800;color:var(--purple-text)}
+/* Loyalty redeem card in checkout */
+.loyalty-redeem-card{background:var(--purple-l);border:1.5px solid var(--purple);border-radius:12px;padding:13px 14px}
+.lrc-empty{font-size:12px;color:var(--muted);text-align:center;padding:4px 0}
+.lrc-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.lrc-avatar{width:34px;height:34px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;font-weight:800;letter-spacing:.5px}
+.lrc-name{font-size:13px;font-weight:800;color:var(--text)}
+.lrc-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.lrc-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lrc-stat{background:var(--surf);border-radius:8px;padding:9px 11px;text-align:center}
+.lrc-stat-val{font-size:16px;font-weight:800;color:var(--purple-text)}
+.lrc-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
 /* Discount section in checkout */
 .discount-section{background:var(--acc-l);border:1px solid var(--acc);border-radius:12px;padding:11px;margin-top:8px;display:flex;align-items:center;justify-content:space-between}
 /* Customer selector */
@@ -1410,6 +1421,8 @@ input,select,textarea{font-family:var(--font)}
 }
 .scm-export-btn {
   width: 100%;
-  margin-bottom: 4px;
-  font-size: 12px !important;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  font-size: 13px !important;
+  padding: 13px 16px;
 }

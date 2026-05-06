@@ -12,10 +12,10 @@ const BANNER_DISMISS_MS    = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 // ── CORE HELPERS ───────────────────────────────────────
 
 /**
- * Returns current storage mode: 'cloud' (default) or 'local'.
+ * Returns current storage mode: 'local' (default).
  */
 function getStorageMode() {
-  return localStorage.getItem(STORAGE_MODE_KEY) || 'cloud';
+  return localStorage.getItem(STORAGE_MODE_KEY) || 'local';
 }
 
 /**
@@ -95,6 +95,37 @@ function dismissStorageModeBanner() {
   const banner = document.getElementById('storage-mode-banner');
   if (banner) banner.classList.remove('show');
   localStorage.setItem(BANNER_DISMISS_KEY, String(Date.now()));
+}
+
+// ── SYNC-BANNER (firebase cloud indicator) ─────────────
+
+/**
+ * The #sync-banner is a fixed pill injected/shown by firebase.js when
+ * cloud sync is active.  When the user is in Local Mode we must hide it
+ * (and keep it hidden) because firebase.js may still run and try to show it.
+ */
+function _hideSyncBannerIfLocal() {
+  if (getStorageMode() !== 'local') return;
+  const sb = document.getElementById('sync-banner');
+  if (!sb) return;
+  sb.style.display = 'none';
+  sb.textContent = '';
+}
+
+/**
+ * Observe future changes to #sync-banner by firebase.js and suppress them
+ * whenever storage mode is 'local'.  Called once during init.
+ */
+function _watchSyncBanner() {
+  const sb = document.getElementById('sync-banner');
+  if (!sb || typeof MutationObserver === 'undefined') return;
+
+  var observer = new MutationObserver(function () {
+    if (getStorageMode() === 'local') {
+      sb.style.display = 'none';
+    }
+  });
+  observer.observe(sb, { attributes: true, childList: true, subtree: true, characterData: true });
 }
 
 // ── SETTINGS RADIO SYNC ────────────────────────────────
@@ -188,6 +219,9 @@ function _applyModeSwitch(targetMode) {
   if (targetMode === 'local') {
     // Stop real-time listener if running
     if (typeof stopCloudListener === 'function') stopCloudListener();
+    // Hide the firebase sync indicator immediately
+    var sb = document.getElementById('sync-banner');
+    if (sb) { sb.style.display = 'none'; sb.textContent = ''; }
     toast('🔒 Switched to Local Mode');
   } else {
     // Restart cloud sync
@@ -210,6 +244,13 @@ function _applyModeSwitch(targetMode) {
 function initStorageMode() {
   // Show banner (respects 7-day dismiss)
   showStorageModeBanner();
+
+  // If local mode: ensure the firebase #sync-banner is hidden immediately
+  // (firebase.js may have already rendered "☁️ Syncing to cloud..." into it)
+  _hideSyncBannerIfLocal();
+
+  // Watch for future firebase injections and suppress them in local mode
+  _watchSyncBanner();
 
   // Sync Settings radios to current mode
   _syncSettingsRadios();

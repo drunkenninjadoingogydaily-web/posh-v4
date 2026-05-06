@@ -36,11 +36,20 @@ var floatAmount  = parseFloat(localStorage.getItem('posh_float') || '0');
 var floatSet     = localStorage.getItem('posh_floatSet') === 'true';
 var onboardingDone = localStorage.getItem('posh_onboarded') === 'true';
 
-// PIN lockout state (not persisted — resets on reload intentionally)
+// PIN lockout state — persisted to localStorage so reload can't bypass it
 let pinFailCount   = 0;
 let pinLockedUntil = 0;
 const PIN_MAX_ATTEMPTS = 5;
 const PIN_LOCKOUT_MS   = 5 * 60 * 1000; // 5 minutes
+
+// BUG FIX #10: helpers to persist/restore lockout state across page reloads
+function _savePinLock() {
+  localStorage.setItem('posh_pinLock', String(pinLockedUntil));
+}
+function _clearPinLock() {
+  pinLockedUntil = 0;
+  localStorage.removeItem('posh_pinLock');
+}
 
 // ─── SAFE getById ─────────────────────────────────────
 // Prevents crashes when elements don't exist in HTML
@@ -68,6 +77,7 @@ function safeClass(id, method, cls){
       if(correct){
         pinFailCount   = 0;
         pinLockedUntil = 0;
+        _clearPinLock(); // BUG FIX #10
         hideLockout();
         _orig && _orig.call(this);
       } else {
@@ -76,6 +86,7 @@ function safeClass(id, method, cls){
           pinLockedUntil = Date.now() + PIN_LOCKOUT_MS;
           pinFailCount   = 0;
           window.pinEntry = '';
+          _savePinLock(); // BUG FIX #10: persist so reload can't bypass lockout
           if(typeof updatePinDots === 'function') updatePinDots();
           showLockout();
           startLockoutCountdown();
@@ -113,6 +124,7 @@ function startLockoutCountdown(){
     if(ms <= 0){
       clearInterval(iv);
       hideLockout();
+      _clearPinLock(); // BUG FIX #10: clean up persisted lock
       const hint = $id('pin-hint');
       if(hint) hint.textContent = 'Enter your PIN';
       return;
@@ -123,8 +135,32 @@ function startLockoutCountdown(){
   }, 1000);
 }
 
-// ═══════════════════════════════════════════════════════
-//  2. ONBOARDING WIZARD  (Bug-fixed: obNext now handles step numbers from HTML)
+// BUG FIX #10: check persisted lockout on every page load — prevents reload bypass
+(function _restorePinLockout() {
+  var stored = localStorage.getItem('posh_pinLock');
+  if (!stored) return;
+  var lockUntil = parseInt(stored, 10);
+  if (Date.now() < lockUntil) {
+    pinLockedUntil = lockUntil;
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+      showLockout();
+      startLockoutCountdown();
+    });
+  } else {
+    localStorage.removeItem('posh_pinLock'); // expired — clean up
+  }
+})();
+
+// BUG FIX #12: safe JSON parser — prevents app crash on corrupted localStorage data
+function safeParseJSON(raw, fallback) {
+  if (!raw) return (fallback !== undefined ? fallback : {});
+  try { return JSON.parse(raw); }
+  catch(e) { console.warn('[POSH] JSON parse failed:', e); return (fallback !== undefined ? fallback : {}); }
+}
+window.safeParseJSON = safeParseJSON;
+
+
 // ═══════════════════════════════════════════════════════
 let obStep = 0;
 const OB_TOTAL = 4; // 4 screens: ob-s1 … ob-s4
@@ -664,7 +700,13 @@ window.exportExcel = function exportSalesCSV(){
   const rows = sales.map(s=>{
     const d    = new Date(s.ts);
     const items= s.items.map(i=>`${i.name}${i.preparation_type?' ('+i.preparation_type+')':''} ×${i.qty}`).join('; ');
-    const profit = s.items.reduce((sum,i)=>{ const p=(typeof products!=='undefined'?products:[]).find(x=>x.id===i.id); return sum+(i.price-(p?p.cost:0))*i.qty; }, 0);
+    // BUG FIX: use unitCost/cost captured on sale item at cart-add time,
+    // not p.cost from the live product (which may have been edited or deleted).
+    const profit = s.items.reduce((sum,i)=>{
+      if(i.prodType==='bulk') return sum + (i.price - (i.cost||0));
+      var unitCost = (i.unitCost!=null)?i.unitCost:((i.cost!=null)?i.cost:0);
+      return sum + (i.price - unitCost) * i.qty;
+    }, 0);
     const vat  = s.vatAmount || 0;
     return [
       d.toLocaleDateString('en-KE'),
@@ -1947,6 +1989,38 @@ window.deleteStaff = function(id){
 })();
 
 // ─── 9. Customer lookup autocomplete in receipt modal ───
+// Helper: called when a customer is selected from the loyalty lookup dropdown
+window.selectLoyaltyCustomer = function(name, points, totalSpent){
+  const input = $id('receipt-customer-lookup');
+  if(input) input.value = name;
+  const resultsEl = $id('customer-lookup-results');
+  if(resultsEl){ resultsEl.innerHTML = ''; resultsEl.style.display = 'none'; }
+  const el = $id('loyalty-redeem-info');
+  if(!el) return;
+  const rate  = parseInt(localStorage.getItem('posh_loyalty_redeem') || '1');
+  const val   = typeof fmt === 'function' ? fmt(points / rate) : points / rate;
+  const spent = typeof fmt === 'function' ? fmt(totalSpent || 0) : (totalSpent || 0);
+  const initials = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  el.innerHTML = `
+    <div class="lrc-header">
+      <div class="lrc-avatar">${initials}</div>
+      <div>
+        <div class="lrc-name">${name}</div>
+        <div class="lrc-sub">${spent} total spent · Loyalty member</div>
+      </div>
+    </div>
+    <div class="lrc-stats">
+      <div class="lrc-stat">
+        <div class="lrc-stat-val">${points.toLocaleString()}</div>
+        <div class="lrc-stat-lbl">Points Balance</div>
+      </div>
+      <div class="lrc-stat">
+        <div class="lrc-stat-val">${val}</div>
+        <div class="lrc-stat-lbl">Est. Value</div>
+      </div>
+    </div>`;
+};
+
 window.lookupCustomerForReceipt = function(q){
   const resultsEl = $id('customer-lookup-results');
   if(!resultsEl) return;
@@ -1954,13 +2028,37 @@ window.lookupCustomerForReceipt = function(q){
   const matches = _customers.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())||(c.phone||'').includes(q));
   if(!matches.length){ resultsEl.innerHTML = ''; resultsEl.style.display = 'none'; return; }
   resultsEl.style.display = 'block';
-  resultsEl.innerHTML = matches.slice(0,5).map(c=>`
-    <div onclick="document.getElementById('receipt-customer-lookup').value='${c.name.replace(/'/g,"\\'")}';document.getElementById('customer-lookup-results').style.display='none';
-      document.getElementById('loyalty-redeem-info').textContent='${c.name}: ${c.points||0} points (≈ ${typeof fmt==='function'?fmt((c.points||0)/parseInt(localStorage.getItem('posh_loyalty_redeem')||1)):'0'} value)';"
-      style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-size:12px;font-weight:700;color:var(--text)">${c.name}</div>${c.phone?`<div style="font-size:10px;color:var(--muted)">${c.phone}</div>`:''}</div>
-      <div style="text-align:right"><div style="font-size:11px;font-weight:700;color:var(--acc)">⭐ ${c.points||0} pts</div><div style="font-size:10px;color:var(--muted)">${typeof fmt==='function'?fmt(c.totalSpent||0):0} spent</div></div>
-    </div>`).join('');
+  // BUG FIX: the old code had a broken regex literal /\/g (the / inside the
+  // regex closed the literal early, causing a syntax error) and injected the
+  // customer name directly into an onclick string (injection risk for any name
+  // with quotes or slashes). Use data-* attributes + addEventListener instead.
+  resultsEl.innerHTML = matches.slice(0,5).map(function(c) {
+    var pts   = c.points     || 0;
+    var spent = c.totalSpent || 0;
+    var safeName = (c.name || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    var safePhone = (c.phone || '').replace(/&/g,'&amp;');
+    return '<div class="clr-row" data-name="' + safeName + '" data-pts="' + pts + '" data-spent="' + spent + '"'
+      + ' style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center">'
+      + '<div>'
+      + '<div style="font-size:12px;font-weight:700;color:var(--text)">' + safeName + '</div>'
+      + (safePhone ? '<div style="font-size:10px;color:var(--muted)">' + safePhone + '</div>' : '')
+      + '</div>'
+      + '<div style="text-align:right">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--purple-text)">' + pts.toLocaleString() + ' pts</div>'
+      + '<div style="font-size:10px;color:var(--muted)">' + (typeof fmt==='function'?fmt(spent):spent) + ' spent</div>'
+      + '</div></div>';
+  }).join('');
+
+  // Delegated click — name is read from dataset (never eval'd as code)
+  resultsEl.querySelectorAll('.clr-row').forEach(function(row) {
+    row.addEventListener('click', function() {
+      selectLoyaltyCustomer(
+        row.dataset.name,
+        parseFloat(row.dataset.pts)   || 0,
+        parseFloat(row.dataset.spent) || 0
+      );
+    });
+  });
 };
 
 // ─── 10. openShiftFloat — also update float summary if needed ───
@@ -1992,13 +2090,22 @@ window.lookupCustomerForReceipt = function(q){
 console.log('POSH Additional Patches loaded ✅ — CRM, Staff, Float, Tab routing, VAT alias all fixed');
 
 // ── Storage Mode init ──────────────────────────────────
-// privacy.js must be loaded AFTER quickwins.js in index.html.
-// We defer slightly so the DOM is fully painted before the banner appears.
-if (typeof initStorageMode === 'function') {
-  initStorageMode();
-} else {
-  // privacy.js loads after us — wait for it
-  window.addEventListener('load', function () {
-    if (typeof initStorageMode === 'function') initStorageMode();
-  });
-}
+// privacy.js loads AFTER quickwins.js. Use window._storageInitialized as a
+// single-call guard shared with app.js (_initCloudSync also checks this).
+// This prevents initStorageMode from running twice (once here on load, once
+// again when the firebaseReady event fires _initCloudSync in app.js).
+(function _maybeInitStorageMode() {
+  if (window._storageInitialized) return; // already done by app.js
+  function _doInit() {
+    if (window._storageInitialized) return;
+    if (typeof initStorageMode !== 'function') return;
+    window._storageInitialized = true;
+    initStorageMode();
+  }
+  if (typeof initStorageMode === 'function') {
+    _doInit();
+  } else {
+    // privacy.js hasn't parsed yet — wait for window load
+    window.addEventListener('load', _doInit, { once: true });
+  }
+})();

@@ -169,9 +169,17 @@
     }
 
     function _doReturn() {
+      // Guard: _returnTxn could be nulled by a cloud sync callback between
+      // processReturn() setting it and showConfirm's async callback firing.
+      if (!_returnTxn) { _toast('⚠️ Refund lost — please try again'); return; }
+
       const allSales = typeof sales !== 'undefined' ? sales : [];
       const allProds = typeof products !== 'undefined' ? products : [];
-      const allExp   = typeof expenses !== 'undefined' ? expenses : [];
+
+      // Use window.expenses directly to avoid capturing a stale throwaway []
+      // if expenses was undefined at closure-creation time (race with cloud load).
+      const allExp = window.expenses;
+      if (!Array.isArray(allExp)) { _toast('⚠️ Could not save refund expense'); return; }
 
       // 1 — Mark the original sale as refunded
       const saleRef = allSales.find(s => s.id === _returnTxn.id);
@@ -200,7 +208,7 @@
         ts:       Date.now(),
         desc:     `Refund #${String(_returnTxn.id).slice(-4)} — ${reason}`,
         amount:   refundAmt,
-        category: 'Return',
+        cat:      'Return',
         method,
       });
 
@@ -980,7 +988,7 @@
   window.downloadCSVTemplate = function () {
     const header = 'name,price,cost,stock,category,unit,lowAt,barcode,emoji';
     const sample = [
-      'Omena 250g,150,90,50,Fish,packet,10,4897001234567,🐟',
+      'Omena 250g,150,90,50,Fish,packet,10,4897001234567,',
       'Rice 1kg,120,70,100,Staples,kg,20,,🌾',
       'Chapati ×5,100,50,30,Bakery,pack,5,,🫓',
     ].join('\n');

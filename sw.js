@@ -1,4 +1,7 @@
-var CACHE = 'posh-v4';
+// BUG FIX #14: separate VERSION constant so you only edit one number per deploy
+// ← bump this on every production release to force cache invalidation
+var VERSION = '5';
+var CACHE = 'posh-v' + VERSION;
 var ASSETS = [
   '/',
   '/index.html',

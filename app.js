@@ -178,7 +178,22 @@ function saveData(){
       shopCode: localStorage.getItem('posh_shop_code') || '',
       lastSync:now
     }));
-  }catch(e){console.warn('Save failed',e);}
+  }catch(e){
+    // BUG FIX #9: detect storage quota exceeded and warn the user instead of silently failing
+    if(e.name === 'QuotaExceededError' || e.code === 22) {
+      const msg = '⚠️ Storage full! Export a CSV backup then delete old sales.';
+      if(typeof toast === 'function') toast(msg);
+      console.error('[POSH] localStorage quota exceeded — data not saved', e);
+      // Offer CSV export to prevent data loss
+      setTimeout(function() {
+        if(confirm('Storage is full. Export CSV backup now?')) {
+          if(typeof exportCSV === 'function') exportCSV();
+        }
+      }, 500);
+      return; // don't attempt cloud sync if local save failed
+    }
+    console.warn('Save failed',e);
+  }
   if(typeof cloudSync==='function') cloudSync();
 }
 function loadData(){
@@ -1235,7 +1250,7 @@ function saveRestock(){
   toast(`✅ +${qty} added to ${p.name} — Stock now: ${p.stock}`);
 }
 function openProductForm(id){
-  editId=id;const p=id?products.find(x=>x.id===id):null;selEmoji=p?p.emoji:'🐟';
+  editId=id;const p=id?products.find(x=>x.id===id):null;selEmoji=p?p.emoji:'';
   document.getElementById('pform-title').textContent=id?'Edit Product':'Add Product';
   ['name','cost','stock','unit','cat','low','supplier'].forEach(f=>{
     document.getElementById('pf-'+f).value=p?({name:p.name,cost:p.cost,stock:p.stock,unit:p.unit,cat:p.cat,low:p.lowAt,supplier:p.supplier}[f]||''):'';
@@ -2053,10 +2068,18 @@ loadData(); // Load from localStorage first (instant)
 // firebase.js is type="module" (async) — wait for it to signal ready
 // before attempting cloud load
 function _initCloudSync(){
+  // BUG FIX #2: ensure privacy.js has had a chance to initialize storage mode
+  // before we read it — a small setTimeout guarantees DOM-order scripts have run.
+  if(typeof initStorageMode === 'function' && !window._storageInitialized) {
+    window._storageInitialized = true;
+    initStorageMode();
+  }
+  // BUG FIX #4: default must match privacy.js ('local', not 'cloud').
+  // Conflicting defaults caused cloud sync to fire unexpectedly on fresh installs.
   // ── Storage Mode check ──────────────────────────────
-  // privacy.js sets posh_storage_mode = 'local' | 'cloud' (default: 'cloud').
+  // privacy.js sets posh_storage_mode = 'local' | 'cloud' (default: 'local').
   // In local mode we skip ALL Firebase calls — no upload, no download, no listener.
-  var _storageMode = localStorage.getItem('posh_storage_mode') || 'cloud';
+  var _storageMode = localStorage.getItem('posh_storage_mode') || 'local';
   if(_storageMode === 'local'){
     console.log('[POSH] Local mode — skipping cloud sync');
     return; // loadData() was already called above; localStorage is the only source

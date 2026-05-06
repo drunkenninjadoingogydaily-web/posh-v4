@@ -1165,8 +1165,10 @@
       <div class="split-remaining" id="split-remaining">Remaining: —</div>
     </div>
     <!-- Loyalty redeem -->
-    <div id="loyalty-redeem-wrap" style="display:none">
-      <div class="loyalty-redeem-info" id="loyalty-redeem-info">Customer loyalty points: 0</div>
+    <div id="loyalty-redeem-wrap" style="display:none;margin-bottom:13px">
+      <div class="loyalty-redeem-card" id="loyalty-redeem-info">
+        <div class="lrc-empty">Select a customer above to see their points balance</div>
+      </div>
     </div>
     <!-- Note -->
     <div class="form-group"><label class="field-label">Note (optional)</label><input class="field" id="cust-note" type="text" placeholder="e.g. Regular customer"/></div>
@@ -1969,16 +1971,29 @@
   STORAGE MODE CONFIRMATION MODAL
 ══════════════════════════════════════ -->
 <div class="overlay" id="storage-confirm-ov" onclick="closeModeConfirmModal()" style="z-index:190"></div>
-<div class="modal-sheet" id="storage-confirm-modal" style="z-index:200">
-  <div class="modal-drag-handle"></div>
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 16px">
-    <span class="modal-title" id="scm-title">Switch Storage Mode?</span>
-    <button onclick="closeModeConfirmModal()" style="background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;line-height:1;padding:0">×</button>
+<div class="modal-sheet" id="storage-confirm-modal" style="z-index:200;padding:0 0 32px">
+  <!-- Drag handle -->
+  <div class="modal-handle" style="margin-bottom:0"></div>
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px">
+    <span class="modal-title" id="scm-title" style="font-size:17px;font-weight:800">Switch Storage Mode?</span>
+    <button onclick="closeModeConfirmModal()"
+      style="width:30px;height:30px;background:var(--surf2);border:none;border-radius:50%;
+             font-size:18px;color:var(--muted);cursor:pointer;display:flex;align-items:center;
+             justify-content:center;line-height:1;flex-shrink:0">×</button>
   </div>
-  <div id="scm-body" style="margin-bottom:18px"></div>
-  <div style="display:flex;gap:10px">
-    <button class="btn btn-secondary" style="flex:1" onclick="closeModeConfirmModal()">Cancel</button>
-    <button class="btn btn-primary" style="flex:2" id="scm-confirm-btn">Confirm</button>
+
+  <!-- Divider -->
+  <div style="height:1px;background:var(--brd);margin:0 20px"></div>
+
+  <!-- Body -->
+  <div id="scm-body" style="padding:18px 20px 0"></div>
+
+  <!-- Action buttons -->
+  <div style="display:flex;flex-direction:column;gap:10px;padding:4px 20px 0">
+    <button class="btn btn-primary btn-lg btn-full" id="scm-confirm-btn">Confirm</button>
+    <button class="btn btn-secondary btn-lg btn-full" onclick="closeModeConfirmModal()">Cancel</button>
   </div>
 </div>
 

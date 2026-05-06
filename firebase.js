@@ -186,11 +186,19 @@ window.cloudLoad = function(callback) {
 
 // ── REAL-TIME LISTENER (optional) ──
 // Listens for changes from other devices in real time
-var _cloudListenerUnsub = null; // BUG FIX: store unsubscribe to prevent duplicate listeners
+var _cloudListenerUnsub = null;
+var _cloudListenerActive = false; // BUG FIX #5: guard against duplicate concurrent listeners
+
 window.startCloudListener = function() {
   if (!_isOnline) return;
-  // BUG FIX: unsubscribe existing listener before creating a new one (memory leak fix)
-  if (_cloudListenerUnsub) { _cloudListenerUnsub(); _cloudListenerUnsub = null; }
+  // BUG FIX #5: if already active, skip — prevents duplicate listeners & memory leaks
+  if (_cloudListenerActive) {
+    console.log('[POSH] Cloud listener already active — skipping duplicate');
+    return;
+  }
+  // Unsubscribe any stale listener before creating a new one
+  if (_cloudListenerUnsub) { try { _cloudListenerUnsub(); } catch(e) {} _cloudListenerUnsub = null; }
+  _cloudListenerActive = true;
   var clientId = getClientId();
   _cloudListenerUnsub = onSnapshot(doc(db, 'shops', clientId), function(snap) {
     if (!snap.exists()) return;
@@ -213,8 +221,19 @@ window.startCloudListener = function() {
       showSyncStatus('synced');
     }
   }, function(err) {
+    _cloudListenerActive = false; // BUG FIX #5: allow restart after error
     console.warn('POSH listener error:', err);
   });
+};
+
+// BUG FIX #1: expose stopCloudListener so privacy.js can call it when switching to local mode
+window.stopCloudListener = function() {
+  _cloudListenerActive = false;
+  if (_cloudListenerUnsub) {
+    try { _cloudListenerUnsub(); } catch(e) {}
+    _cloudListenerUnsub = null;
+    console.log('POSH cloud listener stopped ✅');
+  }
 };
 
 // ── CLOUD LOAD BY SHOP CODE ──
