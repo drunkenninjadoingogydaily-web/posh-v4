@@ -282,7 +282,9 @@ function calcProfit(s){return s.items.reduce((sum,i)=>{
   var unitCost=(i.unitCost!=null)?i.unitCost:((i.cost!=null)?i.cost:(p?p.cost:0));
   return sum+(i.price-unitCost)*i.qty;
 },0);}
-function cartTotal(){return cart.reduce((s,x)=>s+x.price*x.qty,0);}
+// BUG FIX: bulk items store price as a pre-computed total (qty × pricePerUnit),
+// so we must NOT multiply by qty again. Standard/service items use price per unit.
+function cartTotal(){return cart.reduce((s,x)=>s+(x.prodType==='bulk'?x.price:x.price*x.qty),0);}
 function cartCount(){return cart.reduce((s,x)=>s+x.qty,0);}
 function vsBadge(today,yest,prefix=''){
   if(!yest)return '';
@@ -970,20 +972,27 @@ function openCart(){renderCartSheet();document.getElementById('cart-sheet').clas
 function closeCart(){document.getElementById('cart-sheet').classList.remove('open');document.getElementById('cart-ov').classList.remove('show');}
 function renderCartSheet(){
   document.getElementById('cs-items').innerHTML=cart.map(function(item){
-    const prepBadge=item.preparation_type?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;background:${item.preparation_type==='fried'?'var(--amber-l,#fff3cd)':'#e6f4f1'};color:${item.preparation_type==='fried'?'#b45309':'#065f46'}">${item.preparation_type==='fried'?'🍳 Fried':'🐟 Fresh'}</span>`:'';
+    const prepBadge=item.preparation_type?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;background:${item.preparation_type==='fried'?'var(--amber-l,#fff3cd)':'#e6f4f1'};color:${item.preparation_type==='fried'?'#b45309':'#065f46'}">${item.preparation_type==='fried'?'🍳 Fried':'🌿 Fresh'}</span>`:'';
     const cid=item.cid||String(item.id);
     const safeId=cid.replace(/[^a-zA-Z0-9_-]/g,'_');
+    // BUG FIX: bulk items store price as total (qty × pricePerUnit) so we must NOT
+    // multiply by qty again. Also show "X per kg" instead of "total each".
+    const isBulkItem=item.prodType==='bulk';
+    const upriceLabel=isBulkItem
+      ? fmt(item.price/item.qty)+' per '+(item.bulkUnit||'kg')
+      : fmt(item.price)+' each';
+    const rowTotal=isBulkItem?fmt(item.price):fmt(item.price*item.qty);
     return '<div class="ci-row-wrap" id="ci-wrap-'+safeId+'">'
       +'<div class="ci-row-delete-bg">🗑</div>'
       +'<div class="ci-row" id="ci-row-'+safeId+'">'
       +'<span class="ci-emoji"></span>'
-      +'<div class="ci-info"><div class="ci-name">'+item.name+prepBadge+'</div><div class="ci-uprice">'+fmt(item.price)+' each</div></div>'
+      +'<div class="ci-info"><div class="ci-name">'+item.name+prepBadge+'</div><div class="ci-uprice">'+upriceLabel+'</div></div>'
       +'<div class="ci-qty">'
       +'<button class="cq-btn" onclick="changeQty(this.dataset.cid,-1)" data-cid="'+cid+'">−</button>'
       +'<span class="cq-n">'+item.qty+'</span>'
       +'<button class="cq-btn" onclick="changeQty(this.dataset.cid,1)" data-cid="'+cid+'">+</button>'
       +'</div>'
-      +'<span class="ci-total">'+fmt(item.price*item.qty)+'</span>'
+      +'<span class="ci-total">'+rowTotal+'</span>'
       +'<button class="ci-del" onclick="removeFromCart(this.dataset.cid)" data-cid="'+cid+'">×</button>'
       +'</div></div>';
   }).join('');
@@ -1023,7 +1032,7 @@ function openCheckout(){
   document.getElementById('receipt-shop-name').innerHTML=shopName;
   const total=cartTotal();
   document.getElementById('receipt-items').innerHTML=`
-    ${cart.map(i=>{const prepLabel=i.preparation_type?` (${i.preparation_type})`:``;return`<div class="ri-line"><span>${i.name}${prepLabel}</span><span style="color:var(--muted);margin:0 10px;white-space:nowrap">${i.qty} x ${fmt(i.price)}</span><span style="font-weight:700;white-space:nowrap">${fmt(i.price*i.qty)}</span></div>`;}).join('')}
+    ${cart.map(i=>{const prepLabel=i.preparation_type?` (${i.preparation_type})`:``;const iB=i.prodType==='bulk';const qLabel=iB?`${i.qty}${i.bulkUnit||'kg'} x ${fmt(i.price/i.qty)}`:`${i.qty} x ${fmt(i.price)}`;const lineTotal=iB?fmt(i.price):fmt(i.price*i.qty);return`<div class="ri-line"><span>${i.name}${prepLabel}</span><span style="color:var(--muted);margin:0 10px;white-space:nowrap">${qLabel}</span><span style="font-weight:700;white-space:nowrap">${lineTotal}</span></div>`;}).join('')}
     <hr class="ri-divider"/>
     <div class="ri-grand"><span>TOTAL</span><span>${fmt(total)}</span></div>`;
   document.getElementById('cash-tendered').value='';
@@ -1074,7 +1083,7 @@ function shareReceiptWhatsApp(){
   if(!cart.length)return;
   const total=cartTotal();
   const dt=new Date().toLocaleString('en-KE');
-  const lines=cart.map(i=>`  ${i.emoji} ${i.name}${i.preparation_type?' ('+i.preparation_type+')':''} ×${i.qty} — ${fmt(i.price*i.qty)}`).join('\n');
+  const lines=cart.map(i=>`  ${i.emoji} ${i.name}${i.preparation_type?' ('+i.preparation_type+')':''} ×${i.qty} — ${fmt(i.prodType==='bulk'?i.price:i.price*i.qty)}`).join('\n');
   const msg=`🧾 *${shopName} Receipt*\n📅 ${dt}\n\n${lines}\n\n*TOTAL: ${fmt(total)}*\n\nAsante sana! Thank you 🙏`;
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
@@ -1494,7 +1503,7 @@ function renderReports(){
   const prodMap={};
   list.forEach(s=>s.items.forEach(i=>{
     if(!prodMap[i.id])prodMap[i.id]={name:i.name,emoji:i.emoji,qty:0,rev:0};
-    prodMap[i.id].qty+=i.qty;prodMap[i.id].rev+=i.price*i.qty;
+    prodMap[i.id].qty+=i.qty;prodMap[i.id].rev+=(i.prodType==='bulk'?i.price:i.price*i.qty);
   }));
   const topProds=Object.values(prodMap).sort((a,b)=>b.rev-a.rev).slice(0,5);
   const maxRev=topProds[0]?topProds[0].rev:1;
@@ -1591,7 +1600,7 @@ function renderHistory(){
       <span class="txn-chevron" id="txc-${s.id}">▼</span>
     </div>
     <div class="txn-detail" id="txd-${s.id}">
-      ${s.items.map(i=>`<div class="txd-row"><span>${i.name}${i.preparation_type?' <em style="font-size:10px;opacity:.7">('+i.preparation_type+')</em>':''} ×${i.qty}</span><span>${fmt(i.price*i.qty)}</span></div>`).join('')}
+      ${s.items.map(i=>`<div class="txd-row"><span>${i.name}${i.preparation_type?' <em style="font-size:10px;opacity:.7">('+i.preparation_type+')</em>':''} ×${i.qty}</span><span>${fmt(i.prodType==='bulk'?i.price:i.price*i.qty)}</span></div>`).join('')}
       <div class="txd-row b"><span>Total</span><span>${fmt(s.total)}</span></div>
       <div class="txd-row b"><span>Profit</span><span style="color:var(--primary)">${fmt(calcProfit(s))}</span></div>
       ${s.note?`<div class="txd-row"><span>Note</span><span>${s.note}</span></div>`:''}
@@ -1661,7 +1670,7 @@ function exportPDF(){
   const prodMap={};
   list.forEach(s=>s.items.forEach(i=>{
     if(!prodMap[i.id])prodMap[i.id]={name:i.name,qty:0,rev:0};
-    prodMap[i.id].qty+=i.qty;prodMap[i.id].rev+=i.price*i.qty;
+    prodMap[i.id].qty+=i.qty;prodMap[i.id].rev+=(i.prodType==='bulk'?i.price:i.price*i.qty);
   }));
   const topProds=Object.values(prodMap).sort((a,b)=>b.rev-a.rev).slice(0,10);
   const txnRows=[...list].reverse().map(s=>{

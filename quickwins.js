@@ -318,7 +318,7 @@ function openCurrencyModal(){
 //  4. VAT / TAX ENGINE
 // ═══════════════════════════════════════════════════════
 function calcVAT(subtotal){ return(!vatEnabled || vatRate <= 0) ? 0 : Math.round(subtotal * vatRate / 100); }
-function cartSubtotal(){ return cart.reduce((s,x)=>s+x.price*x.qty, 0); }
+function cartSubtotal(){ return cart.reduce((s,x)=>s+(x.prodType==='bulk'?x.price:x.price*x.qty), 0); }
 
 window.cartTotal = function(){
   const sub = cartSubtotal();
@@ -1379,7 +1379,7 @@ window.printThermalReceipt = function () {
 
   // ── Totals ──────────────────────────────────────────
   const sub       = (typeof cartSubtotal === 'function') ? cartSubtotal()
-                  : cart.reduce((s, x) => s + x.price * x.qty, 0);
+                  : cart.reduce((s, x) => s + (x.prodType==='bulk' ? x.price : x.price * x.qty), 0);
   const disc      = (_cartDiscount && typeof calcDiscountAmount === 'function')
                   ? calcDiscountAmount(sub, _cartDiscount) : 0;
   const afterDisc = sub - disc;
@@ -1416,10 +1416,10 @@ window.printThermalReceipt = function () {
     el('pr-items').innerHTML = cart.map(function (i) {
       const prep  = i.preparation_type ? ' (' + i.preparation_type + ')' : '';
       return '<div class="pr-item">' +
-        '<span class="pr-item-name">'  + i.emoji + ' ' + i.name + prep + '</span>' +
+        '<span class="pr-item-name">'  + i.name + prep + '</span>' +
         '<span class="pr-item-qty">'   + i.qty          + '</span>' +
         '<span class="pr-item-price">' + mfmt(i.price)  + '</span>' +
-        '<span class="pr-item-total">' + mfmt(i.price * i.qty) + '</span>' +
+        '<span class="pr-item-total">' + mfmt(i.prodType==="bulk" ? i.price : i.price * i.qty) + '</span>' +
       '</div>';
     }).join('');
   }
@@ -1473,7 +1473,7 @@ window.shareReceiptWhatsApp = function () {
 
   // ── Totals ──────────────────────────────────────────
   const sub       = (typeof cartSubtotal === 'function') ? cartSubtotal()
-                  : cart.reduce((s, x) => s + x.price * x.qty, 0);
+                  : cart.reduce((s, x) => s + (x.prodType==='bulk' ? x.price : x.price * x.qty), 0);
   const disc      = (_cartDiscount && typeof calcDiscountAmount === 'function')
                   ? calcDiscountAmount(sub, _cartDiscount) : 0;
   const afterDisc = sub - disc;
@@ -1497,7 +1497,7 @@ window.shareReceiptWhatsApp = function () {
     return '  ' + i.emoji + ' ' + i.name + prep +
            ' ×' + i.qty +
            ' @ ' + mfmt(i.price) +
-           ' = *' + mfmt(i.price * i.qty) + '*';
+           ' = *' + mfmt(i.prodType==="bulk" ? i.price : i.price * i.qty) + '*';
   }).join('\n');
 
   // ── Totals section ───────────────────────────────────
