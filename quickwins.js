@@ -1990,3 +1990,15 @@ window.lookupCustomerForReceipt = function(q){
 })();
 
 console.log('POSH Additional Patches loaded ✅ — CRM, Staff, Float, Tab routing, VAT alias all fixed');
+
+// ── Storage Mode init ──────────────────────────────────
+// privacy.js must be loaded AFTER quickwins.js in index.html.
+// We defer slightly so the DOM is fully painted before the banner appears.
+if (typeof initStorageMode === 'function') {
+  initStorageMode();
+} else {
+  // privacy.js loads after us — wait for it
+  window.addEventListener('load', function () {
+    if (typeof initStorageMode === 'function') initStorageMode();
+  });
+}

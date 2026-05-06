@@ -354,6 +354,14 @@
 
   <!-- Sync banner -->
   <div id="sync-banner" class="sync-banner"></div>
+
+  <!-- ── Storage Mode Banner ──────────────────────── -->
+  <div id="storage-mode-banner" class="storage-banner">
+    <span id="banner-icon" class="banner-icon-el"></span>
+    <span id="banner-text" class="banner-text-el"></span>
+    <button id="banner-switch-btn" class="banner-btn" onclick="openModeConfirmModal()">Switch Mode</button>
+    <button class="banner-close-btn" onclick="dismissStorageModeBanner()">×</button>
+  </div>
   <div id="donate-nudge" style="display:none;position:fixed;bottom:80px;left:0;right:0;margin:0 16px;z-index:699;animation:nudgeSlide .4s ease">
     <div style="background:linear-gradient(135deg,#005C3B,#00A67E);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,166,126,.35)">
       <div style="font-size:22px;flex-shrink:0">💚</div>
@@ -960,6 +968,41 @@
           </div>
         </div>
       </div>
+      <!-- Data Storage & Privacy -->
+      <div class="settings-section">
+        <div class="settings-title-row"><span class="settings-group-title">Data Storage &amp; Privacy</span></div>
+        <div class="settings-group">
+          <div class="settings-row" onclick="openModeConfirmModal()">
+            <div class="sr-icon" style="background:var(--amber-l)">🔒</div>
+            <div class="sr-info">
+              <div class="sr-label">Storage Mode</div>
+              <div class="sr-sub" id="storage-mode-setting-sub">☁️ Cloud Backup — syncing in real-time</div>
+            </div>
+            <span class="sr-arrow">›</span>
+          </div>
+        </div>
+
+        <!-- Radio options -->
+        <div class="storage-options-card">
+          <div class="storage-option">
+            <input type="radio" id="mode-cloud" name="storage-mode" value="cloud"/>
+            <label for="mode-cloud">
+              <div class="storage-opt-header">☁️ Cloud Backup <span class="storage-recommended">(Recommended)</span></div>
+              <div class="storage-opt-desc">Syncs across devices in real-time. Staff see live updates. Data encrypted on Firebase.</div>
+            </label>
+          </div>
+          <div class="storage-option">
+            <input type="radio" id="mode-local" name="storage-mode" value="local"/>
+            <label for="mode-local">
+              <div class="storage-opt-header">🔒 Local Only <span class="storage-privacy-badge">Privacy Mode</span></div>
+              <div class="storage-opt-desc">No cloud sync or backup. Single device. Fastest performance. Complete offline.</div>
+            </label>
+          </div>
+          <p class="storage-warning">⚠️ Changing this will affect data sync. Export a backup first.</p>
+          <button class="btn btn-primary btn-full" onclick="openModeConfirmModal()">Switch Mode</button>
+        </div>
+      </div>
+
       <div class="settings-section">
         <div class="settings-title-row"><span class="settings-group-title">Support</span></div>
         <div class="settings-group">
@@ -1922,11 +1965,29 @@
 <input type="file" id="img-restore-input" accept=".json" style="display:none"
        onchange="restoreData(event)"/>
 
+<!-- ══════════════════════════════════════
+  STORAGE MODE CONFIRMATION MODAL
+══════════════════════════════════════ -->
+<div class="overlay" id="storage-confirm-ov" onclick="closeModeConfirmModal()" style="z-index:190"></div>
+<div class="modal-sheet" id="storage-confirm-modal" style="z-index:200">
+  <div class="modal-drag-handle"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 16px">
+    <span class="modal-title" id="scm-title">Switch Storage Mode?</span>
+    <button onclick="closeModeConfirmModal()" style="background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;line-height:1;padding:0">×</button>
+  </div>
+  <div id="scm-body" style="margin-bottom:18px"></div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-secondary" style="flex:1" onclick="closeModeConfirmModal()">Cancel</button>
+    <button class="btn btn-primary" style="flex:2" id="scm-confirm-btn">Confirm</button>
+  </div>
+</div>
+
 <!-- Scripts -->
 <script type="module" src="firebase.js"></script>
 <script type="module" src="firebase-auth.js"></script>
 <script src="app.js"></script>
 <script src="quickwins.js"></script>
+<script src="privacy.js"></script>
 <script src="staff.js"></script>
 <script src="barcode.js"></script>
 <script src="features.js"></script>

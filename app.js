@@ -2053,6 +2053,15 @@ loadData(); // Load from localStorage first (instant)
 // firebase.js is type="module" (async) — wait for it to signal ready
 // before attempting cloud load
 function _initCloudSync(){
+  // ── Storage Mode check ──────────────────────────────
+  // privacy.js sets posh_storage_mode = 'local' | 'cloud' (default: 'cloud').
+  // In local mode we skip ALL Firebase calls — no upload, no download, no listener.
+  var _storageMode = localStorage.getItem('posh_storage_mode') || 'cloud';
+  if(_storageMode === 'local'){
+    console.log('[POSH] Local mode — skipping cloud sync');
+    return; // loadData() was already called above; localStorage is the only source
+  }
+  // ── Cloud mode: proceed as normal ───────────────────
   if(typeof cloudLoad==='function'){
     cloudLoad(function(updated){
       if(updated){
