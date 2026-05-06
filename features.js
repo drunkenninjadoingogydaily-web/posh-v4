@@ -224,7 +224,8 @@
   // ══════════════════════════════════════════════════════
 
   // PO store — persisted in localStorage
-  let _poList = JSON.parse(localStorage.getItem('posh_po_list') || '[]');
+  function _safeParsePO(){try{var r=localStorage.getItem('posh_po_list');return r?JSON.parse(r):[];}catch(e){localStorage.removeItem('posh_po_list');return[];}}
+  let _poList = _safeParsePO();
 
   function _savePOs() {
     localStorage.setItem('posh_po_list', JSON.stringify(_poList));

@@ -3,6 +3,12 @@
 //  Loaded AFTER app.js. Overrides / extends existing fns.
 //  Features:
 //   1.  PIN brute-force lockout  (bug-fixed: ID mismatch)
+
+// ── SAFE localStorage JSON helper (BUG FIX: prevents crashes on corrupt data) ──
+function safeParseLS(key,fallback){
+  try{var r=localStorage.getItem(key);return r?JSON.parse(r):fallback;}
+  catch(e){console.warn('POSH: corrupt localStorage key "'+key+'" — resetting',e);localStorage.removeItem(key);return fallback;}
+}
 //   2.  Onboarding wizard        (bug-fixed: obNext arg handling)
 //   3.  Multi-currency support
 //   4.  VAT / tax engine
@@ -594,7 +600,7 @@ function buildProfitabilityData(salesList){
 function renderProfitabilityTable(rows){
   if(!rows.length) return '<div style="text-align:center;color:var(--muted);font-size:12px;padding:14px">No sales data</div>';
   return `<div style="overflow-x:auto"><table class="profit-table"><thead><tr><th>Product</th><th style="text-align:right">Revenue</th><th style="text-align:right">Profit</th><th style="text-align:right">Margin</th></tr></thead><tbody>
-    ${rows.map(r=>`<tr><td><div style="display:flex;align-items:center;gap:7px"><div><div style="font-size:11px;font-weight:700;color:var(--text)">${r.name}</div><div style="font-size:9px;color:var(--muted)">${r.qty} sold</div></div></div></td>
+    ${rows.map(r=>`<tr><td><div style="display:flex;align-items:center;gap:7px"><span>${r.emoji}</span><div><div style="font-size:11px;font-weight:700;color:var(--text)">${r.name}</div><div style="font-size:9px;color:var(--muted)">${r.qty} sold</div></div></div></td>
     <td style="text-align:right;font-size:12px;font-weight:700;color:var(--text)">${fmt(r.rev)}</td>
     <td style="text-align:right;font-size:12px;font-weight:700;color:${r.profit>=0?'var(--green-text)':'var(--red-text)'}">${fmt(r.profit)}</td>
     <td style="text-align:right"><div style="font-size:12px;font-weight:800;color:${r.margin>=30?'var(--green-text)':r.margin>=15?'var(--amber-text)':'var(--red-text)'}">${r.margin}%</div>
@@ -883,7 +889,7 @@ window.disableBiometric = function(){
 // ═══════════════════════════════════════════════════════
 //  13. 🆕 FULL AUDIT LOG
 // ═══════════════════════════════════════════════════════
-var _auditLog = JSON.parse(localStorage.getItem('posh_audit') || '[]');
+var _auditLog = safeParseLS('posh_audit',[]);
 
 function addAuditEntry(action, detail){
   const entry = {
@@ -1728,7 +1734,7 @@ window.openCustomerModal  = function(id){
   const el = $id('customer-modal-title');
   if(el) el.textContent = id ? 'Edit Customer' : 'Add Customer';
   if(id){
-    const customers = JSON.parse(localStorage.getItem('posh_customers')||'[]');
+    const customers = safeParseLS('posh_customers',[]);
     const c = customers.find(x=>x.id===id);
     if(c){
       if($id('cm-name'))  $id('cm-name').value  = c.name  || '';
@@ -1745,7 +1751,7 @@ window.openCustomerModal  = function(id){
 };
 
 // ─── 5. Full CRM implementation ───
-var _customers = JSON.parse(localStorage.getItem('posh_customers') || '[]');
+var _customers = safeParseLS('posh_customers',[]);
 
 window.saveCustomer = function(){
   const name  = ($id('cm-name')  || {}).value?.trim() || '';
@@ -1839,7 +1845,7 @@ window.deleteCRMCustomer = function(id){
 window.renderStaffList = function(){
   const listEl = $id('staff-accounts-list');
   if(!listEl) return;
-  const staffData = JSON.parse(localStorage.getItem('posh_staff_list') || '[]');
+  const staffData = safeParseLS('posh_staff_list',[]);
   // Always show at least the two built-in roles
   const builtIn = [
     {id:'builtin-admin', name:'Admin Account', role:'admin', pin:'••••', builtin:true},
@@ -1870,7 +1876,7 @@ window.saveStaff = function(){
   const phone = ($id('sf-phone') || {}).value?.trim() || '';
   if(!name){ toast('⚠️ Name required'); return; }
   if(pin.length !== 4 || !/^\d{4}$/.test(pin)){ toast('⚠️ Enter a valid 4-digit PIN'); return; }
-  const staffData = JSON.parse(localStorage.getItem('posh_staff_list') || '[]');
+  const staffData = safeParseLS('posh_staff_list',[]);
   staffData.push({id:Date.now(), name, role, pin, phone, createdAt:Date.now()});
   localStorage.setItem('posh_staff_list', JSON.stringify(staffData));
   closeStaffModal();
@@ -1882,7 +1888,7 @@ window.saveStaff = function(){
 window.deleteStaff = function(id){
   if(typeof showConfirm === 'function'){
     showConfirm('Remove Staff?','This cannot be undone.',()=>{
-      const staffData = JSON.parse(localStorage.getItem('posh_staff_list') || '[]').filter(s=>s.id!==id);
+      const staffData = safeParseLS('posh_staff_list',[]).filter(s=>s.id!==id);
       localStorage.setItem('posh_staff_list', JSON.stringify(staffData));
       renderStaffList();
       toast('🗑 Staff removed');

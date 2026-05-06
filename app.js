@@ -71,6 +71,20 @@ const LEGACY_CAT_MAP={'Fresh Fish':'Fish','Fried Fish':'Fish','Dried Omena':'Ome
 const LEGACY_PREP_MAP={'Fresh Fish':'fresh','Fried Fish':'fried','Dried Omena':'fresh','Fried Omena':'fried'};
 // Fish and Omena share one fresh-stock product each; prep choice happens at cart time
 const PREP_CATS=new Set(['Fish','Omena']);
+
+// ── PRODUCT TYPES ──────────────────────────────────────────────
+// standard : normal unit-based product (default, backward-compat)
+// bulk     : sold by weight/volume — qty is decimal, price = qty × pricePerUnit
+// service  : no stock tracking (airtime, M-Pesa, printing, labour)
+const PRODUCT_TYPES={
+  standard:{label:'Standard',icon:'📦',hint:'Regular packaged goods — bottles, cans, packets'},
+  bulk    :{label:'Bulk / Loose',icon:'⚖️',hint:'Sold by weight or volume — oil, grains, sugar'},
+  service :{label:'Service',icon:'🛎️',hint:'No stock needed — airtime, M-Pesa, printing'},
+};
+const BULK_UNITS=['kg','g','litre','ml','piece'];
+
+function getProdType(p){return(p&&p.prodType)||'standard';}
+
 function getDisplayCat(cat){return LEGACY_CAT_MAP[cat]||cat;}
 function getSubLabel(p){
   // accepts a product object; falls back to legacy cat-name parsing
@@ -205,6 +219,8 @@ function loadData(){
         const {preparation_type,...rest}=p;
         return{...rest,price:prices.fresh,prices,emoji:p.emoji||'\u{1F420}'};
       });
+      // ── Step 4: Ensure all products have a prodType (backward-compat) ──
+      products=products.map(p=>({prodType:'standard',...p}));
     }
     if(d.sales)sales=d.sales;
     if(d.expenses)expenses=d.expenses;
@@ -248,7 +264,13 @@ function filterSales(period){
   if(period==='month')return sales.filter(s=>{var d=new Date(s.ts);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
   return sales;
 }
-function calcProfit(s){return s.items.reduce((sum,i)=>{var p=products.find(x=>x.id===i.id);return sum+(i.price-(p?p.cost:0))*i.qty;},0);}
+function calcProfit(s){return s.items.reduce((sum,i)=>{
+  var p=products.find(x=>x.id===i.id);
+  // BUG FIX: use cost saved on the sale item if product was later deleted
+  // so we never fall back to cost=0 which inflates profit numbers
+  var cost=p?p.cost:(i.cost||0);
+  return sum+(i.price-cost)*i.qty;
+},0);}
 function cartTotal(){return cart.reduce((s,x)=>s+x.price*x.qty,0);}
 function cartCount(){return cart.reduce((s,x)=>s+x.qty,0);}
 function vsBadge(today,yest,prefix=''){
@@ -756,16 +778,23 @@ function renderSales(){
         <div class="prod-bottom"><span class="prod-price">from ${fmt(minPrice)}</span>${p.stock>0?`<div class="prod-add">${inCartQty||'+'}</div>`:''}</div>
       </div>`;
     }else{
-      const inCart=cart.find(x=>x.id===p.id);
-      const sb=p.stock===0?'badge-red':p.stock<=p.lowAt?'badge-amber':'badge-green';
-      const stxt=p.stock===0?'Out':p.stock<=p.lowAt?p.stock+' left':p.stock;
-      return`<div class="prod-card${p.stock===0?' disabled':''}${inCart?' in-cart':''}" data-id="${p.id}" onclick="${p.stock>0?`addToCart(${p.id})`:''}">
+      const pt=getProdType(p);
+      const isService=pt==='service';
+      const isBulk=pt==='bulk';
+      const inCart=cart.find(x=>x.cid===String(p.id));
+      // Service products never show as out of stock
+      const outOfStock=!isService&&p.stock<=0;
+      const sb=outOfStock?'badge-red':(!isService&&p.stock<=p.lowAt)?'badge-amber':'badge-green';
+      const stxt=isService?'Service':outOfStock?'Out':p.stock<=p.lowAt?p.stock+(isBulk?' '+p.bulkUnit:'')+' left':p.stock+(isBulk?' '+p.bulkUnit:'');
+      const clickFn=isService?`addToCartService(${p.id})`:(isBulk?`openBulkQtyModal(${p.id})`:`addToCart(${p.id})`);
+      const priceLabel=isBulk?`${fmt(p.pricePerUnit)}/${p.bulkUnit||'kg'}`:fmt(p.price);
+      return`<div class="prod-card${outOfStock?' disabled':''}${inCart?' in-cart':''}" data-id="${p.id}" onclick="${outOfStock?'':clickFn}">
         <span class="prod-fav${p.fav?' on':''}" onclick="event.stopPropagation();toggleFav(${p.id})">${p.fav?'★':'☆'}</span>
         <div class="prod-stock-b"><span class="badge ${sb}">${stxt}</span></div>
         <div class="prod-emoji-wrap"></div>
         <div class="prod-name">${p.name}</div>
-        <div class="prod-unit">${p.unit}</div>
-        <div class="prod-bottom"><span class="prod-price">${fmt(p.price)}</span>${p.stock>0?`<div class="prod-add">${inCart?inCart.qty:'+'}</div>`:''}</div>
+        <div class="prod-unit">${isBulk?('per '+p.bulkUnit):p.unit}</div>
+        <div class="prod-bottom"><span class="prod-price">${priceLabel}</span>${!outOfStock?`<div class="prod-add">${inCart?inCart.qty:'+'}</div>`:''}</div>
       </div>`;
     }
   }).join('');
@@ -810,14 +839,83 @@ function toggleFav(id){var p=products.find(x=>x.id===id);if(p){p.fav=!p.fav;save
 //  CART
 // ═════════════════════════════════════
 function addToCart(id){
-  const p=products.find(x=>x.id===id);if(!p||p.stock<=0)return;
+  const p=products.find(x=>x.id===id);if(!p)return;
+  // Route by product type
+  const pt=getProdType(p);
+  if(pt==='service'){addToCartService(id);return;}
+  if(pt==='bulk'){openBulkQtyModal(id);return;}
+  if(pt==='standard'&&p.stock<=0){toast('⚠️ Out of stock');return;}
   // PREP_CATS always require preparation selection via modal
   if(PREP_CATS.has(getDisplayCat(p.cat))){openTypeModal(id);return;}
   const cid=String(id);
   const ex=cart.find(x=>x.cid===cid);
   if(ex){if(ex.qty>=p.stock){toast('⚠️ Max stock!');return;}ex.qty++;}
-  else cart.push({cid,id,name:p.name,price:p.price,emoji:p.emoji,qty:1,preparation_type:null,cat:getDisplayCat(p.cat)});
+  else cart.push({cid,id,name:p.name,price:p.price,cost:p.cost||0,emoji:p.emoji,qty:1,preparation_type:null,cat:getDisplayCat(p.cat)});
   updateCartFab();renderSales();toast(`✅ Added!`);
+}
+
+// ── SERVICE: always qty=1, no stock deduction ──────────────────
+function addToCartService(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const cid=String(id);
+  const ex=cart.find(x=>x.cid===cid);
+  if(ex){ex.qty++;}
+  else cart.push({cid,id,name:p.name,price:p.price,cost:0,emoji:p.emoji,qty:1,cat:getDisplayCat(p.cat),prodType:'service'});
+  updateCartFab();renderSales();toast(`✅ ${p.name} added!`);
+}
+
+// ── BULK: open a qty input modal before adding to cart ─────────
+function openBulkQtyModal(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const unit=p.bulkUnit||'kg';
+  const existing=cart.find(x=>x.cid===String(id));
+  const curQty=existing?existing.qty:0;
+  // Build a simple inline modal using the existing genModal system
+  openGenModal(p.name,`
+    <div style="text-align:center;margin-bottom:14px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Price: ${fmt(p.pricePerUnit)} per ${unit}</div>
+      <div style="font-size:12px;color:var(--muted)">In stock: ${p.stock} ${unit}</div>
+    </div>
+    <div class="form-group">
+      <label class="field-label">Quantity (${unit})</label>
+      <input class="field" id="bulk-qty-input" type="number" step="0.1" min="0.1"
+        max="${p.stock}" placeholder="e.g. 2.5" value="${curQty||''}"
+        style="font-size:22px;font-weight:800;text-align:center"/>
+    </div>
+    <div id="bulk-qty-preview" style="text-align:center;font-size:14px;font-weight:700;color:var(--primary);margin:10px 0 16px">
+      Total: ${fmt(0)}
+    </div>
+    <div style="display:flex;gap:9px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeGenModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="confirmBulkAdd(${id})">Add to Cart</button>
+    </div>`);
+  // Live preview
+  setTimeout(()=>{
+    const inp=document.getElementById('bulk-qty-input');
+    const prev=document.getElementById('bulk-qty-preview');
+    if(inp&&prev){
+      inp.focus();
+      inp.addEventListener('input',()=>{
+        const q=parseFloat(inp.value)||0;
+        prev.textContent='Total: '+fmt(Math.round(q*p.pricePerUnit));
+      });
+      if(curQty) prev.textContent='Total: '+fmt(Math.round(curQty*p.pricePerUnit));
+    }
+  },50);
+}
+function confirmBulkAdd(id){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  const inp=document.getElementById('bulk-qty-input');
+  const qty=parseFloat(inp?inp.value:0);
+  if(!qty||qty<=0){toast('⚠️ Enter a valid quantity');return;}
+  if(qty>p.stock){toast(`⚠️ Only ${p.stock} ${p.bulkUnit||'kg'} in stock`);return;}
+  const unit=p.bulkUnit||'kg';
+  const price=Math.round(qty*p.pricePerUnit); // total price for this qty
+  const cid=String(id);
+  const ex=cart.find(x=>x.cid===cid);
+  if(ex){ex.qty=qty;ex.price=price;}
+  else cart.push({cid,id,name:p.name,price,cost:Math.round(qty*(p.cost||0)),emoji:p.emoji,qty,prodType:'bulk',bulkUnit:unit,bulkQty:qty,cat:getDisplayCat(p.cat)});
+  closeGenModal();updateCartFab();renderSales();toast(`✅ ${qty}${unit} ${p.name} added!`);
 }
 function addToCartWithPrep(id,prepType){
   // Looks up fresh product by id; uses prices[prepType] for the price
@@ -827,7 +925,7 @@ function addToCartWithPrep(id,prepType){
   const cid=id+'_'+prepType;
   const ex=cart.find(x=>x.cid===cid);
   if(ex){if(ex.qty>=p.stock){toast('⚠️ Max stock!');return;}ex.qty++;}
-  else cart.push({cid,id,name:p.name,price,emoji:p.emoji,qty:1,preparation_type:prepType||null,cat:getDisplayCat(p.cat)});
+  else cart.push({cid,id,name:p.name,price,cost:p.cost||0,emoji:p.emoji,qty:1,preparation_type:prepType||null,cat:getDisplayCat(p.cat)});
   updateCartFab();renderSales();toast(`✅ ${prepType?prepType.charAt(0).toUpperCase()+prepType.slice(1)+' ':''} Added!`);
 }
 function removeFromCart(cid){cart=cart.filter(x=>x.cid!==cid);updateCartFab();renderSales();if(!cart.length)closeCart();}
@@ -930,7 +1028,13 @@ function confirmSale(){
   const payment=document.getElementById('pay-method').value;
   const note=document.getElementById('cust-note').value;
   const items=cart.map(i=>({...i,preparation_type:i.preparation_type||null}));
-  items.forEach(ci=>{var p=products.find(x=>x.id===ci.id);if(p)p.stock=Math.max(0,p.stock-ci.qty);});
+  items.forEach(ci=>{
+    var p=products.find(x=>x.id===ci.id);if(!p)return;
+    // Services have no stock to deduct
+    if(getProdType(p)==='service')return;
+    // Bulk: qty is in units (kg/litres), deduct directly
+    p.stock=Math.max(0,Math.round((p.stock-ci.qty)*100)/100);
+  });
   sales.push({id:Date.now(),ts:Date.now(),total,payment,note,items});
   // auto-add to credit book if paid by Credit
   var custName='';
@@ -1104,6 +1208,14 @@ function openProductForm(id){
   ['name','cost','stock','unit','cat','low','supplier'].forEach(f=>{
     document.getElementById('pf-'+f).value=p?({name:p.name,cost:p.cost,stock:p.stock,unit:p.unit,cat:p.cat,low:p.lowAt,supplier:p.supplier}[f]||''):'';
   });
+  // Product type
+  const typeEl=document.getElementById('pf-prodtype');
+  if(typeEl)typeEl.value=getProdType(p);
+  // Bulk fields
+  const bulkUnitEl=document.getElementById('pf-bulk-unit');
+  const bulkPriceEl=document.getElementById('pf-bulk-price');
+  if(bulkUnitEl)bulkUnitEl.value=p&&p.bulkUnit?p.bulkUnit:'kg';
+  if(bulkPriceEl)bulkPriceEl.value=p&&p.pricePerUnit?p.pricePerUnit:'';
   // Single price field (non-PREP_CATS products)
   const singlePriceEl=document.getElementById('pf-price');
   if(singlePriceEl)singlePriceEl.value=p&&!PREP_CATS.has(getDisplayCat(p.cat))?p.price||'':'';
@@ -1113,6 +1225,7 @@ function openProductForm(id){
   if(freshEl)freshEl.value=p&&p.prices?p.prices.fresh||'':'';
   if(friedEl)friedEl.value=p&&p.prices?p.prices.fried||'':'';
   updatePrepFieldVisibility();
+  updateProdTypeVisibility();
   renderEmojiPicker();
   document.getElementById('pform-modal').classList.add('open');document.getElementById('pform-ov').classList.add('show');
 }
@@ -1126,33 +1239,78 @@ function updatePrepFieldVisibility(){
   if(dualWrap)dualWrap.style.display=isPrepCat?'block':'none';
   if(prepWrap)prepWrap.style.display='none'; // prep type no longer needed in form
 }
+function updateProdTypeVisibility(){
+  const typeEl=document.getElementById('pf-prodtype');
+  if(!typeEl)return;
+  const pt=typeEl.value||'standard';
+  const isBulk=pt==='bulk';
+  const isService=pt==='service';
+  // stock/unit row
+  const stockRow=document.getElementById('pf-stock-row');
+  if(stockRow)stockRow.style.display=isService?'none':'flex';
+  // price row — hide for bulk (uses pricePerUnit instead)
+  const priceWrap=document.getElementById('pf-price-wrap');
+  if(priceWrap)priceWrap.style.display=(isBulk||PREP_CATS.has((document.getElementById('pf-cat').value||'').trim()))?'none':'block';
+  // bulk-specific fields
+  const bulkWrap=document.getElementById('pf-bulk-wrap');
+  if(bulkWrap)bulkWrap.style.display=isBulk?'block':'none';
+  // hint text
+  const hint=document.getElementById('pf-type-hint');
+  if(hint)hint.textContent=PRODUCT_TYPES[pt]?PRODUCT_TYPES[pt].hint:'';
+}
 function closeProductForm(){document.getElementById('pform-modal').classList.remove('open');document.getElementById('pform-ov').classList.remove('show');}
 function renderEmojiPicker(){document.getElementById('emoji-picker').innerHTML=EMOJIS.map(e=>`<div class="ep-item${e===selEmoji?' sel':''}" onclick="selEmoji='${e}';renderEmojiPicker()">${e}</div>`).join('');}
 function saveProduct(){
   const name=document.getElementById('pf-name').value.trim();
   const cost=parseFloat(document.getElementById('pf-cost').value)||0;
-  const stock=parseInt(document.getElementById('pf-stock').value)||0;
-  const unit=document.getElementById('pf-unit').value.trim()||'unit';
   const cat=document.getElementById('pf-cat').value.trim()||'General';
   const lowAt=parseInt(document.getElementById('pf-low').value)||5;
   const supplier=document.getElementById('pf-supplier').value.trim();
+  const prodType=(document.getElementById('pf-prodtype')?document.getElementById('pf-prodtype').value:'') || 'standard';
   if(!name){toast('⚠️ Name required');return;}
+
+  // ── SERVICE ───────────────────────────────────────────────────
+  if(prodType==='service'){
+    const price=parseFloat(document.getElementById('pf-price').value)||0;
+    if(!price){toast('⚠️ Price required');return;}
+    const base={name,price,cost:0,stock:0,unit:'service',cat,lowAt,supplier,emoji:selEmoji,fav:false,prodType:'service'};
+    if(editId)Object.assign(products.find(x=>x.id===editId),base);
+    else products.push({id:nextId++,...base});
+    closeProductForm();saveData();renderInv();toast(editId?'✅ Updated':'✅ Added');
+    return;
+  }
+
+  // ── BULK ──────────────────────────────────────────────────────
+  if(prodType==='bulk'){
+    const pricePerUnit=parseFloat(document.getElementById('pf-bulk-price')?document.getElementById('pf-bulk-price').value:0)||0;
+    const bulkUnit=(document.getElementById('pf-bulk-unit')?document.getElementById('pf-bulk-unit').value:'')||'kg';
+    const stock=parseFloat(document.getElementById('pf-stock').value)||0;
+    const unit=document.getElementById('pf-unit').value.trim()||bulkUnit;
+    if(!pricePerUnit){toast('⚠️ Price per unit required');return;}
+    const base={name,pricePerUnit,price:pricePerUnit,cost,stock,unit,bulkUnit,cat,lowAt,supplier,emoji:selEmoji,fav:false,prodType:'bulk'};
+    if(editId)Object.assign(products.find(x=>x.id===editId),base);
+    else products.push({id:nextId++,...base});
+    closeProductForm();saveData();renderInv();toast(editId?'✅ Updated':'✅ Added');
+    return;
+  }
+
+  // ── STANDARD (default) ────────────────────────────────────────
+  const stock=parseInt(document.getElementById('pf-stock').value)||0;
+  const unit=document.getElementById('pf-unit').value.trim()||'unit';
   if(PREP_CATS.has(cat)){
-    // PREP_CATS: dual pricing, no preparation_type on the product itself
     const freshPrice=parseFloat(document.getElementById('pf-price-fresh').value)||0;
     const friedPrice=parseFloat(document.getElementById('pf-price-fried').value)||0;
     if(!freshPrice||!friedPrice){toast('⚠️ Enter both Fresh and Fried prices');return;}
     const prices={fresh:freshPrice,fried:friedPrice};
-    if(editId){
-      Object.assign(products.find(x=>x.id===editId),{name,prices,price:freshPrice,cost,stock,unit,cat,lowAt,supplier,emoji:selEmoji});
-    }else{
-      products.push({id:nextId++,name,prices,price:freshPrice,cost,stock,unit,cat,lowAt,supplier,emoji:selEmoji,fav:false});
-    }
+    const base={name,prices,price:freshPrice,cost,stock,unit,cat,lowAt,supplier,emoji:selEmoji,prodType:'standard'};
+    if(editId){Object.assign(products.find(x=>x.id===editId),base);}
+    else{products.push({id:nextId++,...base,fav:false});}
   }else{
     const price=parseFloat(document.getElementById('pf-price').value)||0;
     if(!price){toast('⚠️ Price required');return;}
-    if(editId)Object.assign(products.find(x=>x.id===editId),{name,price,cost,stock,unit,cat,lowAt,supplier,emoji:selEmoji});
-    else products.push({id:nextId++,name,price,cost,stock,unit,cat,lowAt,supplier,emoji:selEmoji,fav:false});
+    const base={name,price,cost,stock,unit,cat,lowAt,supplier,emoji:selEmoji,prodType:'standard'};
+    if(editId)Object.assign(products.find(x=>x.id===editId),base);
+    else products.push({id:nextId++,...base,fav:false});
   }
   closeProductForm();saveData();renderInv();toast(editId?'✅ Updated':'✅ Added');
 }

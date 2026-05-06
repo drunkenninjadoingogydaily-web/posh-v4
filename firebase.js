@@ -186,16 +186,19 @@ window.cloudLoad = function(callback) {
 
 // ── REAL-TIME LISTENER (optional) ──
 // Listens for changes from other devices in real time
+var _cloudListenerUnsub = null; // BUG FIX: store unsubscribe to prevent duplicate listeners
 window.startCloudListener = function() {
   if (!_isOnline) return;
+  // BUG FIX: unsubscribe existing listener before creating a new one (memory leak fix)
+  if (_cloudListenerUnsub) { _cloudListenerUnsub(); _cloudListenerUnsub = null; }
   var clientId = getClientId();
-  onSnapshot(doc(db, 'shops', clientId), function(snap) {
+  _cloudListenerUnsub = onSnapshot(doc(db, 'shops', clientId), function(snap) {
     if (!snap.exists()) return;
     var cloudData = snap.data();
     // Only update if the change came from another device
     // (not from this device's own sync)
     var localRaw = localStorage.getItem('posh_data');
-    var localData = localRaw ? JSON.parse(localRaw) : {};
+    var localData = localRaw ? (function(){try{return JSON.parse(localRaw);}catch(e){return {};}})() : {};
     var cloudTime = cloudData.lastSync ? new Date(cloudData.lastSync).getTime() : 0;
     var localTime = localData.lastSync ? new Date(localData.lastSync).getTime() : 0;
     if (cloudTime > localTime + 5000) { // 5 second buffer to avoid self-updates
