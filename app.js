@@ -267,9 +267,16 @@ function filterSales(period){
 function calcProfit(s){return s.items.reduce((sum,i)=>{
   var p=products.find(x=>x.id===i.id);
   // BUG FIX: use cost saved on the sale item if product was later deleted
-  // so we never fall back to cost=0 which inflates profit numbers
-  var cost=p?p.cost:(i.cost||0);
-  return sum+(i.price-cost)*i.qty;
+  // so we never fall back to cost=0 which inflates profit numbers.
+  // BUG FIX (bulk): for bulk items i.price and i.cost are both already totals
+  // (qty × unit rate), so profit = i.price - i.cost with no further qty multiply.
+  // For standard items, i.price is per-unit so profit = (i.price - unitCost) × qty.
+  if(i.prodType==='bulk'){
+    var totalCost=i.cost||0;
+    return sum+(i.price-totalCost);
+  }
+  var unitCost=p?p.cost:(i.unitCost!=null?i.unitCost:(i.cost||0));
+  return sum+(i.price-unitCost)*i.qty;
 },0);}
 function cartTotal(){return cart.reduce((s,x)=>s+x.price*x.qty,0);}
 function cartCount(){return cart.reduce((s,x)=>s+x.qty,0);}
@@ -353,6 +360,9 @@ function toggleDark(){
 function resetIdleTimer(){
   lastSaleTime=Date.now();
   document.getElementById('idle-banner').classList.remove('show');
+  // BUG FIX: use clearInterval consistently — idleTimer is a setInterval handle.
+  // Previously the variable was typed as `let` but comments implied setTimeout;
+  // the repeated 30-second check requires setInterval, so we keep it and name it clearly.
   clearInterval(idleTimer);
   if(idleMinutes===0)return; // disabled
   idleTimer=setInterval(()=>{
@@ -453,6 +463,9 @@ function lockApp(){
   document.getElementById('pin-screen').style.display='flex';
   pinEntry='';updatePinDots();
   document.getElementById('pin-hint').textContent='Enter your PIN';
+  // BUG FIX: stop the idle interval while the screen is locked — no need to
+  // keep checking for inactivity when the user is already on the PIN screen.
+  clearInterval(idleTimer);
   // Show shift summary toast
   if(shiftStartTime){
     var shiftMins=Math.round((Date.now()-shiftStartTime)/60000);
@@ -914,7 +927,9 @@ function confirmBulkAdd(id){
   const cid=String(id);
   const ex=cart.find(x=>x.cid===cid);
   if(ex){ex.qty=qty;ex.price=price;}
-  else cart.push({cid,id,name:p.name,price,cost:Math.round(qty*(p.cost||0)),emoji:p.emoji,qty,prodType:'bulk',bulkUnit:unit,bulkQty:qty,cat:getDisplayCat(p.cat)});
+  // BUG FIX: store unitCost separately so calcProfit can compute per-unit margin
+  // without double-multiplying qty (i.cost here is already a total: qty × unit cost)
+  else cart.push({cid,id,name:p.name,price,cost:Math.round(qty*(p.cost||0)),unitCost:p.cost||0,emoji:p.emoji,qty,prodType:'bulk',bulkUnit:unit,bulkQty:qty,cat:getDisplayCat(p.cat)});
   closeGenModal();updateCartFab();renderSales();toast(`✅ ${qty}${unit} ${p.name} added!`);
 }
 function addToCartWithPrep(id,prepType){
@@ -2021,11 +2036,10 @@ function _initCloudSync(){
     });
   }
 }
-if(typeof cloudLoad==='function'){
-  _initCloudSync(); // already ready (shouldn't happen but safe)
-} else {
-  window.addEventListener('firebaseReady', _initCloudSync, {once:true});
-}
+// BUG FIX: firebase.js is type="module" so it always resolves asynchronously.
+// cloudLoad can never be defined at this parse-time point — the synchronous
+// branch was dead code and misleading. Always listen for firebaseReady.
+window.addEventListener('firebaseReady', _initCloudSync, {once:true});
 document.getElementById('header-date').textContent=nowDate();
 document.getElementById('sales-time').textContent=nowDate();
 renderDashboard();

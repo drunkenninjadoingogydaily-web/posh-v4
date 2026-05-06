@@ -240,7 +240,11 @@ window.cloudLoadByCode = function(shopCode, callback) {
 };
 
 // ── EXPOSE DB ──
-// Non-module scripts can use window.db if needed
+// BUG FIX: expose db and firebaseApp on window so non-module scripts
+// (e.g. the POSH_DONATE remote config loader in app.js) can access them.
+// Previously only _poshFirebaseBooted was set, leaving window._poshDb undefined.
+window._poshDb             = db;
+window._poshFirebaseApp    = firebaseApp;
 window._poshFirebaseBooted = true;
 
 console.log('POSH Firebase ready ✅');

@@ -19,7 +19,12 @@ var ASSETS = [
 self.addEventListener('install', function(e) {
   e.waitUntil(
     caches.open(CACHE).then(function(cache) {
-      return cache.addAll(ASSETS).catch(function() { return; });
+      // BUG FIX: log caching failures instead of silently swallowing them.
+      // A silent catch meant a 404'd asset would install a broken offline cache,
+      // causing blank screens with no console warning to diagnose the problem.
+      return cache.addAll(ASSETS).catch(function(err) {
+        console.warn('POSH SW: cache.addAll failed during install:', err);
+      });
     })
   );
   self.skipWaiting();

@@ -17,6 +17,10 @@ import {
   signOut as fbSignOut
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+// BUG FIX: _authMode must be initialised here so _authBusy() always has a
+// valid value even if firebase-auth.js loads before staff.js sets it.
+window._authMode = window._authMode || 'signin';
+
 // ── Wait for firebase.js to signal it has initialised ─────────
 function _boot () {
   const auth = getAuth(getApp());
