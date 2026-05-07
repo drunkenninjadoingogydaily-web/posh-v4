@@ -866,6 +866,286 @@
   </div>
 
   <!-- ══════════════════════════════════
+    SCREEN: CARE (Customer Help)
+  ══════════════════════════════════ -->
+  <div class="screen" id="screen-care">
+    <!-- Top Header -->
+    <div class="top-header" style="padding:13px 14px">
+      <div class="screen-title">Help &amp; Support</div>
+    </div>
+
+    <div class="screen-scroll" style="padding-bottom:88px;padding-top:4px">
+
+      <!-- ── HERO CARD ── -->
+      <div style="margin:14px 14px 0;background:linear-gradient(135deg,var(--acc) 0%,var(--acc2) 100%);border-radius:18px;padding:22px 20px;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.18)">
+        <div style="position:absolute;right:-18px;top:-18px;width:100px;height:100px;background:rgba(255,255,255,.08);border-radius:50%"></div>
+        <div style="position:absolute;right:24px;bottom:-28px;width:70px;height:70px;background:rgba(255,255,255,.06);border-radius:50%"></div>
+        <div style="font-size:28px;margin-bottom:8px">🛟</div>
+        <div style="font-size:17px;font-weight:800;color:var(--acc-text);line-height:1.2;margin-bottom:4px">We're here for you</div>
+        <div style="font-size:12px;color:var(--acc-text);opacity:.85;line-height:1.5">Browse guides, download the manual, or send us a message — we respond within 24 hours.</div>
+      </div>
+
+      <!-- ── QUICK ACTIONS ── -->
+      <div style="margin:16px 14px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+
+        <!-- Download Manual -->
+        <button id="download-manual-btn" onclick="downloadUserManual()" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;transition:background .15s;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px" ontouchstart="">
+          <div style="width:36px;height:36px;background:var(--blue-l);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">📘</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.3">User Manual</div>
+          <div style="font-size:10px;color:var(--muted)">Download PDF guide</div>
+        </button>
+
+        <!-- Video Tours placeholder -->
+        <button onclick="showCareTab('faqs')" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;transition:background .15s;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px" ontouchstart="">
+          <div style="width:36px;height:36px;background:var(--purple-l);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">💡</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.3">Quick Tips</div>
+          <div style="font-size:10px;color:var(--muted)">Common questions</div>
+        </button>
+
+      </div>
+
+      <!-- ── TAB BAR ── -->
+      <div style="margin:18px 14px 0;display:flex;gap:6px;background:var(--surf2);border-radius:12px;padding:4px">
+        <button id="care-tab-faqs"  onclick="showCareTab('faqs')"    style="flex:1;padding:8px 0;font-size:11px;font-weight:700;border-radius:9px;border:none;cursor:pointer;transition:all .18s;background:var(--acc);color:var(--acc-text)">FAQs</button>
+        <button id="care-tab-contact" onclick="showCareTab('contact')" style="flex:1;padding:8px 0;font-size:11px;font-weight:700;border-radius:9px;border:none;cursor:pointer;transition:all .18s;background:transparent;color:var(--text2)">Contact Us</button>
+        <button id="care-tab-about"  onclick="showCareTab('about')"   style="flex:1;padding:8px 0;font-size:11px;font-weight:700;border-radius:9px;border:none;cursor:pointer;transition:all .18s;background:transparent;color:var(--text2)">About</button>
+      </div>
+
+      <!-- ════════════════════════════
+           PANEL: FAQs
+      ════════════════════════════ -->
+      <div id="care-panel-faqs" style="margin:12px 14px 0;display:block">
+
+        <div style="display:flex;flex-direction:column;gap:8px" id="faq-accordion">
+
+          <!-- FAQ Item -->
+          <div class="faq-item" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
+            <button onclick="toggleFaq(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 15px;background:none;border:none;cursor:pointer;text-align:left">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:16px">📦</span>
+                <span style="font-size:12px;font-weight:700;color:var(--text)">How do I add a product?</span>
+              </div>
+              <span class="faq-chevron" style="font-size:14px;color:var(--muted);transition:transform .2s">›</span>
+            </button>
+            <div class="faq-body" style="display:none;padding:0 15px 14px;font-size:12px;color:var(--text2);line-height:1.65;border-top:1px solid var(--brd)">
+              <br>Go to <strong>Stock</strong> → tap the <strong>＋</strong> button (top right). Fill in the product name, price, and quantity. You can also scan a barcode by tapping the barcode icon on the form.
+            </div>
+          </div>
+
+          <div class="faq-item" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
+            <button onclick="toggleFaq(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 15px;background:none;border:none;cursor:pointer;text-align:left">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:16px">💸</span>
+                <span style="font-size:12px;font-weight:700;color:var(--text)">How do I record a sale?</span>
+              </div>
+              <span class="faq-chevron" style="font-size:14px;color:var(--muted);transition:transform .2s">›</span>
+            </button>
+            <div class="faq-body" style="display:none;padding:0 15px 14px;font-size:12px;color:var(--text2);line-height:1.65;border-top:1px solid var(--brd)">
+              <br>Open the <strong>POS</strong> tab, tap any product to add it to the cart, then tap <strong>Charge</strong>. Choose the payment method and confirm. The sale is instantly recorded and stock is updated.
+            </div>
+          </div>
+
+          <div class="faq-item" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
+            <button onclick="toggleFaq(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 15px;background:none;border:none;cursor:pointer;text-align:left">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:16px">☁️</span>
+                <span style="font-size:12px;font-weight:700;color:var(--text)">How does cloud sync work?</span>
+              </div>
+              <span class="faq-chevron" style="font-size:14px;color:var(--muted);transition:transform .2s">›</span>
+            </button>
+            <div class="faq-body" style="display:none;padding:0 15px 14px;font-size:12px;color:var(--text2);line-height:1.65;border-top:1px solid var(--brd)">
+              <br>Sign in as Shop Owner via Google or Email, then go to <strong>Settings → Storage Mode</strong> and switch to <strong>Cloud Mode</strong>. All your data will sync in real-time across devices. Staff can access using your Shop Code.
+            </div>
+          </div>
+
+          <div class="faq-item" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
+            <button onclick="toggleFaq(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 15px;background:none;border:none;cursor:pointer;text-align:left">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:16px">👤</span>
+                <span style="font-size:12px;font-weight:700;color:var(--text)">How do I add staff members?</span>
+              </div>
+              <span class="faq-chevron" style="font-size:14px;color:var(--muted);transition:transform .2s">›</span>
+            </button>
+            <div class="faq-body" style="display:none;padding:0 15px 14px;font-size:12px;color:var(--text2);line-height:1.65;border-top:1px solid var(--brd)">
+              <br>Go to the <strong>Staff</strong> section inside Settings. Tap <strong>+ Add</strong> to create a staff account with a name and PIN. Share your Shop Code with staff so they can log in on any device.
+            </div>
+          </div>
+
+          <div class="faq-item" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
+            <button onclick="toggleFaq(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 15px;background:none;border:none;cursor:pointer;text-align:left">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:16px">📊</span>
+                <span style="font-size:12px;font-weight:700;color:var(--text)">Where can I see my reports?</span>
+              </div>
+              <span class="faq-chevron" style="font-size:14px;color:var(--muted);transition:transform .2s">›</span>
+            </button>
+            <div class="faq-body" style="display:none;padding:0 15px 14px;font-size:12px;color:var(--text2);line-height:1.65;border-top:1px solid var(--brd)">
+              <br>The <strong>Reports</strong> tab shows daily, weekly, and monthly breakdowns of sales, expenses, and profit. Tap any bar on the chart to drill into that period. You can also export to CSV from Settings.
+            </div>
+          </div>
+
+          <div class="faq-item" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">
+            <button onclick="toggleFaq(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 15px;background:none;border:none;cursor:pointer;text-align:left">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:16px">🔒</span>
+                <span style="font-size:12px;font-weight:700;color:var(--text)">I forgot my Admin PIN</span>
+              </div>
+              <span class="faq-chevron" style="font-size:14px;color:var(--muted);transition:transform .2s">›</span>
+            </button>
+            <div class="faq-body" style="display:none;padding:0 15px 14px;font-size:12px;color:var(--text2);line-height:1.65;border-top:1px solid var(--brd)">
+              <br>The default Admin PIN is <strong>4321</strong> and the default Staff PIN is <strong>1234</strong>. If you changed it and forgot, contact support below — we'll help you recover access safely.
+            </div>
+          </div>
+
+        </div><!-- /faq-accordion -->
+
+        <!-- Still stuck? -->
+        <div style="margin-top:14px;background:var(--acc-l);border:1px solid var(--acc);border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:20px;margin-bottom:6px">🤔</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">Didn't find your answer?</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Drop us a message and we'll get back to you within 24 hours.</div>
+          <button onclick="showCareTab('contact')" style="background:var(--acc);color:var(--acc-text);border:none;border-radius:10px;padding:10px 22px;font-size:12px;font-weight:700;cursor:pointer">Send a Message</button>
+        </div>
+
+      </div><!-- /care-panel-faqs -->
+
+      <!-- ════════════════════════════
+           PANEL: CONTACT
+      ════════════════════════════ -->
+      <div id="care-panel-contact" style="margin:12px 14px 0;display:none">
+
+        <!-- Response time badge -->
+        <div style="display:flex;align-items:center;gap:8px;background:var(--green-l);border:1px solid var(--green);border-radius:12px;padding:10px 14px;margin-bottom:14px">
+          <span style="font-size:16px">⚡</span>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--green-text)">Typically replies within 24 hours</div>
+            <div style="font-size:10px;color:var(--text2)">Mon – Sat · 8 am – 8 pm EAT</div>
+          </div>
+        </div>
+
+        <!-- Contact form card -->
+        <div style="background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:20px;box-shadow:var(--shadow)">
+
+          <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px">Send us a message</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:18px">We read every message personally.</div>
+
+          <form id="contactForm" onsubmit="handleSubmit(event)" novalidate>
+
+            <!-- Name -->
+            <div style="margin-bottom:13px">
+              <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Your Name</label>
+              <input id="from_name" type="text" placeholder="e.g. Jane Wanjiru" autocomplete="name"
+                style="width:100%;background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--text);box-sizing:border-box;transition:border-color .15s;outline:none"
+                onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--brd)'">
+              <div id="err-name" class="field-error" style="font-size:10px;color:var(--red-text);margin-top:3px;display:none">Please enter your name (min 2 characters)</div>
+            </div>
+
+            <!-- Email -->
+            <div style="margin-bottom:13px">
+              <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Email Address</label>
+              <input id="reply_to" type="email" placeholder="you@example.com" autocomplete="email"
+                style="width:100%;background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--text);box-sizing:border-box;transition:border-color .15s;outline:none"
+                onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--brd)'">
+              <div id="err-email" class="field-error" style="font-size:10px;color:var(--red-text);margin-top:3px;display:none">Please enter a valid email address</div>
+            </div>
+
+            <!-- Subject -->
+            <div style="margin-bottom:13px">
+              <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Subject</label>
+              <select id="subject"
+                style="width:100%;background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--text);box-sizing:border-box;appearance:none;transition:border-color .15s;outline:none;cursor:pointer"
+                onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--brd)'">
+                <option value="">— Choose a topic —</option>
+                <option value="Bug report — something isn't working">🐛 Bug report — something isn't working</option>
+                <option value="Feature request — I'd love to see...">💡 Feature request — I'd love to see...</option>
+                <option value="Account or sync help">☁️ Account / sync help</option>
+                <option value="PIN or login recovery">🔐 PIN or login recovery</option>
+                <option value="Billing or donation inquiry">💳 Billing or donation inquiry</option>
+                <option value="General question">💬 General question</option>
+              </select>
+              <div id="err-subject" class="field-error" style="font-size:10px;color:var(--red-text);margin-top:3px;display:none">Please select a subject</div>
+            </div>
+
+            <!-- Message -->
+            <div style="margin-bottom:18px">
+              <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Message</label>
+              <textarea id="message" rows="4" placeholder="Describe your issue or question in detail. The more info you give, the faster we can help!"
+                style="width:100%;background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--text);box-sizing:border-box;resize:vertical;transition:border-color .15s;outline:none;font-family:inherit"
+                onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--brd)'"></textarea>
+              <div id="err-message" class="field-error" style="font-size:10px;color:var(--red-text);margin-top:3px;display:none">Message must be at least 10 characters</div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" id="submitBtn" style="width:100%;background:var(--acc);color:var(--acc-text);border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s" ontouchstart="">
+              <span id="btnSpinner" class="hidden" style="width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--acc-text);border-radius:50%;animation:spin .7s linear infinite"></span>
+              <span id="btnText">Send Message</span>
+              <span id="btnArrow">✉️</span>
+            </button>
+
+          </form>
+
+        </div><!-- /form card -->
+
+        <!-- Direct email fallback -->
+        <div style="margin-top:12px;text-align:center;font-size:11px;color:var(--muted)">
+          Or email directly:
+          <a href="mailto:ojiambodavid598@gmail.com" style="color:var(--acc);font-weight:700;text-decoration:none"> ojiambodavid598@gmail.com</a>
+        </div>
+
+      </div><!-- /care-panel-contact -->
+
+      <!-- ════════════════════════════
+           PANEL: ABOUT
+      ════════════════════════════ -->
+      <div id="care-panel-about" style="margin:12px 14px 0;display:none">
+
+        <!-- App info card -->
+        <div style="background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:20px;box-shadow:var(--shadow);text-align:center;margin-bottom:12px">
+          <div style="width:64px;height:64px;background:var(--acc);border-radius:18px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:var(--acc-text)">P</div>
+          <div style="font-size:20px;font-weight:900;color:var(--text);letter-spacing:-1px">POSH</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Point of Sale Hub</div>
+          <div style="display:inline-block;background:var(--acc-l);color:var(--acc);font-size:10px;font-weight:700;padding:4px 12px;border-radius:99px;letter-spacing:.4px">VERSION 4.0</div>
+        </div>
+
+        <!-- Features list -->
+        <div style="background:var(--surf);border:1px solid var(--brd);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px">
+          <div style="padding:14px 15px 10px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">What's included</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 15px 16px">
+            <span style="background:var(--green-l);color:var(--green-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">🛒 POS &amp; Cart</span>
+            <span style="background:var(--blue-l);color:var(--blue-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">📦 Inventory</span>
+            <span style="background:var(--purple-l);color:var(--purple-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">📊 Reports</span>
+            <span style="background:var(--amber-l);color:var(--amber-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">💳 Credit Mgmt</span>
+            <span style="background:var(--acc-l);color:var(--acc);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">☁️ Cloud Sync</span>
+            <span style="background:var(--red-l);color:var(--red-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">👥 Multi-Staff</span>
+            <span style="background:var(--green-l);color:var(--green-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">📸 Barcodes</span>
+            <span style="background:var(--surf2);color:var(--text2);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">📴 Offline Mode</span>
+          </div>
+        </div>
+
+        <!-- Built by -->
+        <div style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;padding:16px 15px;box-shadow:var(--shadow);margin-bottom:12px;display:flex;align-items:center;gap:13px">
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👨‍💻</div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text)">Built by David Ojiambo</div>
+            <div style="font-size:11px;color:var(--muted)">Nairobi, Kenya · Full-stack developer</div>
+            <a href="mailto:ojiambodavid598@gmail.com" style="font-size:10px;color:var(--acc);font-weight:700;text-decoration:none">ojiambodavid598@gmail.com</a>
+          </div>
+        </div>
+
+        <!-- Support the app -->
+        <div style="background:linear-gradient(135deg,var(--acc-l),var(--surf));border:1px solid var(--acc);border-radius:14px;padding:16px 15px;text-align:center">
+          <div style="font-size:18px;margin-bottom:5px">❤️</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">Enjoying POSH?</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:12px">POSH is free and built with love. A small contribution helps keep it alive and improving.</div>
+          <button onclick="openDonateModal ? openDonateModal() : showCareTab('contact')" style="background:var(--acc);color:var(--acc-text);border:none;border-radius:10px;padding:10px 22px;font-size:12px;font-weight:700;cursor:pointer">Support the Developer ☕</button>
+        </div>
+
+      </div><!-- /care-panel-about -->
+
+    </div><!-- /screen-scroll -->
+  </div>
+
+  <!-- ══════════════════════════════════
     SCREEN: SETTINGS
   ══════════════════════════════════ -->
   <div class="screen" id="screen-settings">
@@ -1091,6 +1371,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
       <span>CRM</span>
     </button>
+    <button class="nav-item" id="nav-care" onclick="switchTab('care')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/></svg>
+      <span>Help</span>
+    </button>
   </div>
 
 </div><!-- #app -->
@@ -1212,7 +1496,7 @@
     <!-- Note -->
     <div class="form-group"><label class="field-label">Note (optional)</label><input class="field" id="cust-note" type="text" placeholder="e.g. Regular customer"/></div>
     <div class="receipt-footer-txt">Asante sana! · Thank you 🙏</div>
-    <div style="display:flex;gap:9px;margin-top:14px">
+    <div style="display:flex;flex-direction: column-reverse;gap:4px;margin-top:14px">
       <button class="btn btn-secondary" style="flex:1" onclick="closeReceipt()">Back</button>
       <button class="btn" style="flex:1;background:#25D366;color:white" onclick="shareReceiptWhatsApp()">📲 WhatsApp</button>
       <button class="btn" style="flex:1;background:#333;color:white" onclick="printThermalReceipt()">🖨 Print</button>
@@ -2000,7 +2284,10 @@
 </div>
 
 <!-- Toast -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast">
+  <span class="toast-icon" style="margin-right:6px"></span>
+  <span class="toast-msg"></span>
+</div>
 
 <!-- Hidden input for restoring image backups (accepts posh-images-*.json) -->
 <input type="file" id="img-restore-input" accept=".json" style="display:none"
@@ -2039,7 +2326,12 @@
 <!-- Scripts -->
 <script type="module" src="firebase.js"></script>
 <script type="module" src="firebase-auth.js"></script>
+<!-- EmailJS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/index.min.js"></script>
+
+<!-- Core app scripts -->
 <script src="app.js"></script>
+<script src="posh-utils.js"></script>
 <script src="quickwins.js"></script>
 <script src="privacy.js"></script>
 <script src="staff.js"></script>
@@ -2047,5 +2339,9 @@
 <script src="features.js"></script>
 <script src="product-images.js"></script>
 <script src="image-sync.js"></script>
+
+<!-- Support & Contact Form -->
+<script src="email.js"></script>
+
 </body>
 </html>

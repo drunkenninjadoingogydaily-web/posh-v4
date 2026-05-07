@@ -829,6 +829,7 @@ input,select,textarea{font-family:var(--font)}
 .discount-section{background:var(--acc-l);border:1px solid var(--acc);border-radius:12px;padding:11px;margin-top:8px;display:flex;align-items:center;justify-content:space-between}
 /* Customer selector */
 .customer-select-row{display:flex;gap:8px;align-items:center}
+.receipt-footer-txt{font-size: 14px;}
 
 /* ══════════════════════════════════
    17. INVENTORY
@@ -1493,4 +1494,34 @@ input,select,textarea{font-family:var(--font)}
   margin-bottom: 16px;
   font-size: 13px !important;
   padding: 13px 16px;
+}
+
+/* ── Toast Error State ────────────────────────────────── */
+.toast-error {
+  background: var(--red-l) !important;
+  border-color: var(--red) !important;
+  color: var(--red-text) !important;
+}
+
+/* ── Field Error & Input Error (for email.js) ───────── */
+.field-error.visible {
+  display: block !important;
+}
+
+.input-error {
+  border-color: var(--red) !important;
+  background: var(--red-l) !important;
+}
+
+.btn-success {
+  background: var(--green) !important;
+  color: #fff !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
