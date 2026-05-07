@@ -372,6 +372,7 @@ input,select,textarea{font-family:var(--font)}
 }
 .hamburger:active{background:var(--acc-l);border-color:var(--acc)}
 .ham-line{width:16px;height:2px;background:var(--text);border-radius:2px;transition:background .2s}
+.screen-title{font-size: small;}
 
 /* ══════════════════════════════════
    9. SIDEBAR
