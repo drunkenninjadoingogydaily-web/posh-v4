@@ -353,19 +353,7 @@ function closeModal(){
 //  CUSTOMER CARE TAB
 // ═════════════════════════════════════
 var _careRendered=false;
-var CARE_FAQ=[
-  {q:'How do I add a product?',a:'Go to <strong>Stock</strong> → tap <strong>+ Add Product</strong>. Fill in name, price, cost and stock. Tap Save.'},
-  {q:'How do I sell something?',a:'Open the <strong>POS</strong> tab. Tap a product to add it to the cart. Tap <strong>Checkout</strong>, choose payment method and confirm.'},
-  {q:'A customer paid on credit — how do I record it?',a:'At checkout choose <strong>Credit</strong>. The sale is recorded and appears in the <strong>Credit</strong> tab. Tap a credit entry to mark it paid when settled.'},
-  {q:'How do I sync data across two devices?',a:'Switch to <strong>Cloud Mode</strong> in Settings → Storage Mode. Both devices need the same owner account and internet access.'},
-  {q:'How do I add a staff member?',a:'Settings → Staff Accounts (Admin only). Tap <strong>+ Add Staff</strong>, enter name and PIN. Share your shop code so they can log in.'},
-  {q:'My data disappeared after refreshing.',a:'POSH saves locally in the browser. Clearing browser data wipes it. Enable Cloud Mode to keep data safe across sessions.'},
-  {q:'How do I export sales as a spreadsheet?',a:'Reports → scroll down → <strong>Export CSV</strong>. Open in Excel or Google Sheets.'},
-  {q:'How do I change the shop name or PIN?',a:'Sidebar (☰) → Settings. Change shop name, Admin PIN and Staff PIN there. Admin login required for PINs.'},
-  {q:'The barcode scanner is not working.',a:'Grant camera permission in your browser. Open the product form, tap the barcode icon, and point camera at the barcode in good lighting.'},
-  {q:'How do I reset my PIN if I forgot it?',a:'On the PIN screen tap <strong>Forgot PIN?</strong>. Enter the registered phone number. If it matches you can set a new PIN immediately.'},
-];
-function _careEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
 // ─── CARE TAB STYLES ───────────────────────────────────
 function _injectCareStyles(){
   if(document.getElementById('care-styles'))return;
@@ -431,189 +419,33 @@ function _manualNotReady(){
 }
 
 // ─── MAIN RENDER ────────────────────────────────────────
+// FIX: _renderCareTab no longer overwrites tab.innerHTML.
+// The full Help screen HTML already lives in index.html (screen-care).
+// This function only injects shared styles and populates the two dynamic
+// values (shop name and storage mode label), then activates the FAQs panel.
 function _renderCareTab(){
   var tab=qs('screen-care');
   if(!tab)return;
   if(_careRendered)return;
   _careRendered=true;
   _injectCareStyles();
-
-  var shopCode=typeof window.getShopCode==='function'?window.getShopCode():(localStorage.getItem('posh_shop_code')||'—');
+  // Populate dynamic values
+  var shopCode=typeof window.getShopCode==='function'
+    ?window.getShopCode()
+    :(localStorage.getItem('posh_shop_code')||'—');
   var storageLabel=(localStorage.getItem('posh_storage_mode')||'local')==='cloud'?'☁️ Cloud':'🔒 Local';
-
-  tab.innerHTML=
-  '<div class="top-header" style="padding:13px 14px"><div class="screen-title">Help &amp; Support</div></div>'+
-  '<div class="screen-scroll" style="padding-bottom:88px;padding-top:4px">'+
-
-  // ── HERO ──
-  '<div style="margin:14px 14px 0;background:linear-gradient(135deg,var(--acc) 0%,var(--acc2) 100%);border-radius:18px;padding:22px 20px;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.18)">'+
-    '<div style="position:absolute;right:-18px;top:-18px;width:100px;height:100px;background:rgba(255,255,255,.08);border-radius:50%"></div>'+
-    '<div style="font-size:28px;margin-bottom:8px">🛟</div>'+
-    '<div style="font-size:17px;font-weight:800;color:var(--acc-text);line-height:1.2;margin-bottom:4px">We\'re here for you</div>'+
-    '<div style="font-size:12px;color:var(--acc-text);opacity:.85;line-height:1.5">Browse guides, download the manual, or send us a message — we reply within 24 hours.</div>'+
-  '</div>'+
-
-  // ── QUICK ACTION CARDS ──
-  '<div style="margin:16px 14px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
-    '<button id="download-manual-btn" onclick="downloadUserManual()" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px">'+
-      '<div style="width:36px;height:36px;background:var(--blue-l);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">📘</div>'+
-      '<div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.3">User Manual</div>'+
-      '<div style="font-size:10px;color:var(--muted)">Download PDF guide</div>'+
-    '</button>'+
-    '<button onclick="showCareTab(\'contact\')" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;padding:16px 14px;text-align:left;cursor:pointer;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px">'+
-      '<div style="width:36px;height:36px;background:var(--acc-l);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">✉️</div>'+
-      '<div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.3">Email Support</div>'+
-      '<div style="font-size:10px;color:var(--muted)">Send us a message</div>'+
-    '</button>'+
-  '</div>'+
-
-  // ── APP INFO STRIP ──
-  '<div style="margin:14px 14px 0;background:var(--surf);border:1px solid var(--brd);border-radius:14px;padding:12px 14px;display:flex;gap:16px;flex-wrap:wrap;box-shadow:var(--shadow)">'+
-    '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px">🏪</span><span style="font-size:11px;color:var(--text2)">Shop: <strong id="care-shopname" style="color:var(--text)">'+_careEsc(shopName)+'</strong></span></div>'+
-    '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px">🔑</span><span style="font-size:11px;color:var(--text2)">Code: <strong style="color:var(--acc);font-family:monospace">'+shopCode+'</strong></span></div>'+
-    '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px">💾</span><span id="care-storage" style="font-size:11px;color:var(--text2)">'+storageLabel+'</span></div>'+
-    '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px">📱</span><span style="font-size:11px;color:var(--text2)">v4.0</span></div>'+
-  '</div>'+
-
-  // ── TAB BAR ──
-  '<div style="margin:18px 14px 0;display:flex;gap:6px;background:var(--surf2);border-radius:12px;padding:4px">'+
-    '<button id="care-tab-faqs"    onclick="showCareTab(\'faqs\')"    style="flex:1;padding:8px 0;font-size:11px;font-weight:700;border-radius:9px;border:none;cursor:pointer;transition:all .18s;background:var(--acc);color:var(--acc-text)">FAQs</button>'+
-    '<button id="care-tab-contact" onclick="showCareTab(\'contact\')" style="flex:1;padding:8px 0;font-size:11px;font-weight:700;border-radius:9px;border:none;cursor:pointer;transition:all .18s;background:transparent;color:var(--text2)">Contact Us</button>'+
-    '<button id="care-tab-about"   onclick="showCareTab(\'about\')"   style="flex:1;padding:8px 0;font-size:11px;font-weight:700;border-radius:9px;border:none;cursor:pointer;transition:all .18s;background:transparent;color:var(--text2)">About</button>'+
-  '</div>'+
-
-  // ══════════════════════════ PANEL: FAQs ══════════════════════════
-  '<div id="care-panel-faqs" style="margin:12px 14px 0;display:block">'+
-    '<div style="display:flex;flex-direction:column;gap:8px">'+
-      _makeFaqItem('📦','How do I add a product?','Go to <strong>Stock</strong> → tap the <strong>＋</strong> button (top right). Fill in the product name, price, and quantity. You can also scan a barcode by tapping the barcode icon on the form.')+
-      _makeFaqItem('💸','How do I record a sale?','Open the <strong>POS</strong> tab, tap any product to add it to the cart, then tap <strong>Charge</strong>. Choose the payment method and confirm. The sale is instantly recorded and stock is updated.')+
-      _makeFaqItem('☁️','How does cloud sync work?','Sign in as Shop Owner via Google or Email. Go to <strong>Settings → Storage Mode</strong> and switch to <strong>Cloud Mode</strong>. All data syncs in real-time across devices. Staff can access using your Shop Code.')+
-      _makeFaqItem('👤','How do I add staff members?','Go to <strong>Settings → Staff</strong> and tap <strong>+ Add</strong>. Create an account with a name and PIN. Share your Shop Code so staff can log in on any device.')+
-      _makeFaqItem('📊','Where can I see my reports?','The <strong>Reports</strong> tab shows daily, weekly, and monthly breakdowns of sales, expenses, and profit. Tap any bar on the chart to drill into that period. Export to CSV from Settings.')+
-      _makeFaqItem('🔒','I forgot my Admin PIN','The default Admin PIN is <strong>4321</strong> and Staff PIN is <strong>1234</strong>. If you changed it and forgot, contact us via the <strong>Contact Us</strong> tab — we\'ll help you recover access safely.')+
-      _makeFaqItem('📴','Does POSH work offline?','Yes! All your data is saved locally on the device. You can use POS, add stock, and record sales without internet. Data syncs to the cloud automatically when you reconnect (Cloud Mode only).')+
-    '</div>'+
-    '<div style="margin-top:14px;background:var(--acc-l);border:1px solid var(--acc);border-radius:14px;padding:16px;text-align:center">'+
-      '<div style="font-size:20px;margin-bottom:6px">🤔</div>'+
-      '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">Didn\'t find your answer?</div>'+
-      '<div style="font-size:11px;color:var(--text2);margin-bottom:12px">Drop us a message and we\'ll get back to you within 24 hours.</div>'+
-      '<button onclick="showCareTab(\'contact\')" style="background:var(--acc);color:var(--acc-text);border:none;border-radius:10px;padding:10px 22px;font-size:12px;font-weight:700;cursor:pointer">Send a Message ✉️</button>'+
-    '</div>'+
-  '</div>'+
-
-  // ══════════════════════════ PANEL: CONTACT ══════════════════════════
-  '<div id="care-panel-contact" style="margin:12px 14px 0;display:none">'+
-    '<div style="display:flex;align-items:center;gap:8px;background:var(--green-l);border:1px solid var(--green);border-radius:12px;padding:10px 14px;margin-bottom:14px">'+
-      '<span style="font-size:16px">⚡</span>'+
-      '<div><div style="font-size:11px;font-weight:700;color:var(--green-text)">Typically replies within 24 hours</div>'+
-      '<div style="font-size:10px;color:var(--text2)">Mon – Sat · 8 am – 8 pm EAT</div></div>'+
-    '</div>'+
-    '<div style="background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:20px;box-shadow:var(--shadow)">'+
-      '<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px">Send us a message</div>'+
-      '<div style="font-size:11px;color:var(--muted);margin-bottom:18px">We read every message personally.</div>'+
-      '<form id="contactForm" onsubmit="handleSubmit(event)" novalidate>'+
-        // Name
-        '<div style="margin-bottom:13px">'+
-          '<label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Your Name</label>'+
-          '<input id="from_name" type="text" placeholder="e.g. Jane Wanjiru" autocomplete="name" style="width:100%;background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--text);box-sizing:border-box;outline:none;font-family:inherit" onfocus="this.style.borderColor=\'var(--acc)\'" onblur="this.style.borderColor=\'var(--brd)\'">'+
-          '<div id="err-name" class="field-error" style="font-size:10px;color:var(--red-text);margin-top:3px;display:none">Please enter your name (min 2 chars)</div>'+
-        '</div>'+
-        // Email
-        '<div style="margin-bottom:13px">'+
-          '<label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Email Address</label>'+
-          '<input id="reply_to" type="email" placeholder="you@example.com" autocomplete="email" style="width:100%;background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--text);box-sizing:border-box;outline:none;font-family:inherit" onfocus="this.style.borderColor=\'var(--acc)\'" onblur="this.style.borderColor=\'var(--brd)\'">'+
-          '<div id="err-email" class="field-error" style="font-size:10px;color:var(--red-text);margin-top:3px;display:none">Enter a valid email address</div>'+
-        '</div>'+
-        // Subject dropdown
-        '<div style="margin-bottom:13px">'+
-          '<label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Subject</label>'+
-          '<select id="subject" style="width:100%;background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--text);box-sizing:border-box;outline:none;appearance:none;font-family:inherit" onfocus="this.style.borderColor=\'var(--acc)\'" onblur="this.style.borderColor=\'var(--brd)\'">'+
-            '<option value="">— Choose a topic —</option>'+
-            '<option value="Bug report — something isn\'t working">🐛 Bug report — something isn\'t working</option>'+
-            '<option value="Feature request — I\'d love to see...">💡 Feature request — I\'d love to see…</option>'+
-            '<option value="Account or sync help">☁️ Account / sync help</option>'+
-            '<option value="PIN or login recovery">🔐 PIN or login recovery</option>'+
-            '<option value="General question">💬 General question</option>'+
-          '</select>'+
-          '<div id="err-subject" class="field-error" style="font-size:10px;color:var(--red-text);margin-top:3px;display:none">Please select a subject</div>'+
-        '</div>'+
-        // Message
-        '<div style="margin-bottom:18px">'+
-          '<label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Message</label>'+
-          '<textarea id="message" rows="4" placeholder="Describe your issue or question in detail…" style="width:100%;background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--text);box-sizing:border-box;resize:vertical;outline:none;font-family:inherit" onfocus="this.style.borderColor=\'var(--acc)\'" onblur="this.style.borderColor=\'var(--brd)\'"></textarea>'+
-          '<div id="err-message" class="field-error" style="font-size:10px;color:var(--red-text);margin-top:3px;display:none">Message must be at least 10 characters</div>'+
-        '</div>'+
-        // Submit
-        '<button type="submit" id="submitBtn" style="width:100%;background:var(--acc);color:var(--acc-text);border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">'+
-          '<span id="btnSpinner" class="hidden" style="width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--acc-text);border-radius:50%;animation:spin .7s linear infinite;display:inline-block"></span>'+
-          '<span id="btnText">Send Message</span>'+
-          '<span id="btnArrow">✉️</span>'+
-        '</button>'+
-      '</form>'+
-    '</div>'+
-    '<div style="margin-top:12px;text-align:center;font-size:11px;color:var(--muted)">'+
-      'Or email directly: <a href="mailto:ojiambodavid598@gmail.com" style="color:var(--acc);font-weight:700;text-decoration:none">ojiambodavid598@gmail.com</a>'+
-    '</div>'+
-  '</div>'+
-
-  // ══════════════════════════ PANEL: ABOUT ══════════════════════════
-  '<div id="care-panel-about" style="margin:12px 14px 0;display:none">'+
-    '<div style="background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:20px;box-shadow:var(--shadow);text-align:center;margin-bottom:12px">'+
-      '<div style="width:64px;height:64px;background:var(--acc);border-radius:18px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:var(--acc-text)">P</div>'+
-      '<div style="font-size:20px;font-weight:900;color:var(--text);letter-spacing:-1px">POSH</div>'+
-      '<div style="font-size:11px;color:var(--muted);margin-bottom:12px">Point of Sale Hub</div>'+
-      '<div style="display:inline-block;background:var(--acc-l);color:var(--acc);font-size:10px;font-weight:700;padding:4px 12px;border-radius:99px;letter-spacing:.4px">VERSION 4.0</div>'+
-    '</div>'+
-    '<div style="background:var(--surf);border:1px solid var(--brd);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px">'+
-      '<div style="padding:14px 15px 10px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">What\'s included</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 15px 16px">'+
-        '<span style="background:var(--green-l);color:var(--green-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">🛒 POS &amp; Cart</span>'+
-        '<span style="background:var(--blue-l);color:var(--blue-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">📦 Inventory</span>'+
-        '<span style="background:var(--purple-l);color:var(--purple-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">📊 Reports</span>'+
-        '<span style="background:var(--amber-l);color:var(--amber-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">💳 Credit Mgmt</span>'+
-        '<span style="background:var(--acc-l);color:var(--acc);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">☁️ Cloud Sync</span>'+
-        '<span style="background:var(--red-l);color:var(--red-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">👥 Multi-Staff</span>'+
-        '<span style="background:var(--green-l);color:var(--green-text);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">📸 Barcodes</span>'+
-        '<span style="background:var(--surf2);color:var(--text2);font-size:10px;font-weight:700;padding:5px 11px;border-radius:99px">📴 Offline Mode</span>'+
-      '</div>'+
-    '</div>'+
-    '<div style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;padding:16px 15px;box-shadow:var(--shadow);margin-bottom:12px;display:flex;align-items:center;gap:13px">'+
-      '<div style="width:40px;height:40px;background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👨‍💻</div>'+
-      '<div>'+
-        '<div style="font-size:12px;font-weight:700;color:var(--text)">Built by David Ojiambo</div>'+
-        '<div style="font-size:11px;color:var(--muted)">Nairobi, Kenya · Full-stack developer</div>'+
-        '<a href="mailto:ojiambodavid598@gmail.com" style="font-size:10px;color:var(--acc);font-weight:700;text-decoration:none">ojiambodavid598@gmail.com</a>'+
-      '</div>'+
-    '</div>'+
-    '<div style="background:var(--acc-l);border:1px solid var(--acc);border-radius:14px;padding:16px 15px;text-align:center">'+
-      '<div style="font-size:18px;margin-bottom:5px">❤️</div>'+
-      '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">Enjoying POSH?</div>'+
-      '<div style="font-size:11px;color:var(--text2);margin-bottom:12px">POSH is free and built with love. A small contribution keeps it alive and improving.</div>'+
-      '<button onclick="typeof openDonateModal===\'function\'?openDonateModal():showCareTab(\'contact\')" style="background:var(--acc);color:var(--acc-text);border:none;border-radius:10px;padding:10px 22px;font-size:12px;font-weight:700;cursor:pointer">Support the Developer ☕</button>'+
-    '</div>'+
-  '</div>'+
-
-  '</div>';// end screen-scroll
-
-  // Show default tab
+  var el=document.getElementById('care-shopname');
+  if(el)el.textContent=shopName||'POSH';
+  el=document.getElementById('care-shopcode');
+  if(el)el.textContent=shopCode;
+  el=document.getElementById('care-storage');
+  if(el)el.textContent=storageLabel;
+  // Show default panel
   showCareTab('faqs');
 }
 
-// Helper: build one FAQ accordion item
-function _makeFaqItem(icon,question,answer){
-  return '<div class="faq-item" style="background:var(--surf);border:1px solid var(--brd);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)">'+
-    '<button onclick="toggleFaq(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 15px;background:none;border:none;cursor:pointer;text-align:left">'+
-      '<div style="display:flex;align-items:center;gap:10px">'+
-        '<span style="font-size:16px">'+icon+'</span>'+
-        '<span style="font-size:12px;font-weight:700;color:var(--text)">'+question+'</span>'+
-      '</div>'+
-      '<span class="faq-chevron" style="font-size:16px;color:var(--muted);transition:transform .2s;flex-shrink:0">›</span>'+
-    '</button>'+
-    '<div class="faq-body" style="display:none;padding:0 15px 14px;font-size:12px;color:var(--text2);line-height:1.65;border-top:1px solid var(--brd)">'+
-      '<br>'+answer+
-    '</div>'+
-  '</div>';
-}
+function _careEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
 
 window._careToggleFaq=function(i){
   var ans=qs('care-ans-'+i),arr=qs('care-arr-'+i);

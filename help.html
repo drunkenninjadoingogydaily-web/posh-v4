@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="ocean">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>POSH — Help & Support</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+
+<!-- ─── THEME BOOT — mirrors index.html, zero-flash ─── -->
+<script>
+(function(){
+  var T={
+    midnight:{bg:'#0A0E17',surf:'#111827',surf2:'#1A2235',surf3:'#222E44',brd:'#1E2D42',text:'#F1F5F9',text2:'#94A3B8',muted:'#4A6580',acc:'#FFB800',acc2:'#FF8C00',accL:'rgba(255,184,0,.10)',accTx:'#000',red:'#FF4D4D',redL:'rgba(255,77,77,.10)',redTx:'#FF4D4D',green:'#00D68F',greenL:'rgba(0,214,143,.10)',greenTx:'#00D68F',blue:'#4D9EFF',blueL:'rgba(77,158,255,.10)',blueTx:'#4D9EFF',amber:'#F59E0B',amberL:'rgba(245,158,11,.10)',amberTx:'#F59E0B',purple:'#A78BFA',purpleL:'rgba(167,139,250,.10)',purpleTx:'#A78BFA',shadow:'0 2px 8px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.2)'},
+    emerald:{bg:'#F0F4F8',surf:'#FFFFFF',surf2:'#F0F4F8',surf3:'#E2EBF3',brd:'#D0DDE9',text:'#0D1B2A',text2:'#5A7184',muted:'#8FA3B3',acc:'#00A67E',acc2:'#007F61',accL:'rgba(0,166,126,.10)',accTx:'#fff',red:'#DC2626',redL:'rgba(220,38,38,.10)',redTx:'#991B1B',green:'#15803D',greenL:'rgba(21,128,61,.10)',greenTx:'#14532D',blue:'#1D4ED8',blueL:'rgba(29,78,216,.10)',blueTx:'#1E3A8A',amber:'#B45309',amberL:'rgba(180,83,9,.10)',amberTx:'#78350F',purple:'#7C3AED',purpleL:'rgba(124,58,237,.10)',purpleTx:'#4C1D95',shadow:'0 2px 8px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06)'},
+    terracotta:{bg:'#FFF5EE',surf:'#FFFFFF',surf2:'#FFF0E6',surf3:'#FFE4D0',brd:'#F5D4C0',text:'#1A0A00',text2:'#A07060',muted:'#C0A090',acc:'#E8521A',acc2:'#F5933A',accL:'rgba(232,82,26,.10)',accTx:'#fff',red:'#DC2626',redL:'rgba(220,38,38,.10)',redTx:'#991B1B',green:'#15803D',greenL:'rgba(21,128,61,.10)',greenTx:'#14532D',blue:'#1D4ED8',blueL:'rgba(29,78,216,.10)',blueTx:'#1E3A8A',amber:'#B45309',amberL:'rgba(180,83,9,.10)',amberTx:'#78350F',purple:'#7C3AED',purpleL:'rgba(124,58,237,.10)',purpleTx:'#4C1D95',shadow:'0 2px 8px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.05)'},
+    ocean:{bg:'#EEF4FC',surf:'#FFFFFF',surf2:'#EEF4FC',surf3:'#DCE9F8',brd:'#C8DAF0',text:'#0A1A38',text2:'#4870A0',muted:'#7090B8',acc:'#1B6FE8',acc2:'#00C2FF',accL:'rgba(27,111,232,.10)',accTx:'#fff',red:'#DC2626',redL:'rgba(220,38,38,.10)',redTx:'#991B1B',green:'#15803D',greenL:'rgba(21,128,61,.10)',greenTx:'#14532D',blue:'#1B6FE8',blueL:'rgba(27,111,232,.10)',blueTx:'#1E3A8A',amber:'#B45309',amberL:'rgba(180,83,9,.10)',amberTx:'#78350F',purple:'#7C3AED',purpleL:'rgba(124,58,237,.10)',purpleTx:'#4C1D95',shadow:'0 2px 8px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06)'},
+    obsidian:{bg:'#0C0C0E',surf:'#131316',surf2:'#1A1A1F',surf3:'#222228',brd:'#2A2A32',text:'#F4F4F6',text2:'#888898',muted:'#555566',acc:'#AAFF00',acc2:'#88CC00',accL:'rgba(170,255,0,.10)',accTx:'#0C0C0E',red:'#FF4444',redL:'rgba(255,68,68,.10)',redTx:'#FF4444',green:'#00FF88',greenL:'rgba(0,255,136,.10)',greenTx:'#00FF88',blue:'#44AAFF',blueL:'rgba(68,170,255,.10)',blueTx:'#44AAFF',amber:'#FFCC00',amberL:'rgba(255,204,0,.10)',amberTx:'#FFCC00',purple:'#CC88FF',purpleL:'rgba(204,136,255,.10)',purpleTx:'#CC88FF',shadow:'0 2px 8px rgba(0,0,0,.6),0 8px 24px rgba(0,0,0,.4)'}
+  };
+  var k=localStorage.getItem('posh_theme')||'ocean';
+  var t=T[k]||T.ocean;
+  var r=document.documentElement;
+  r.setAttribute('data-theme',k);
+  var p=function(n,v){r.style.setProperty(n,v);};
+  p('--bg',t.bg);p('--surf',t.surf);p('--surf2',t.surf2);p('--surf3',t.surf3);p('--brd',t.brd);
+  p('--text',t.text);p('--text2',t.text2);p('--muted',t.muted);
+  p('--acc',t.acc);p('--acc2',t.acc2);p('--acc-l',t.accL);p('--acc-text',t.accTx);
+  p('--red',t.red);p('--red-l',t.redL);p('--red-text',t.redTx);
+  p('--green',t.green);p('--green-l',t.greenL);p('--green-text',t.greenTx);
+  p('--blue',t.blue);p('--blue-l',t.blueL);p('--blue-text',t.blueTx);
+  p('--amber',t.amber);p('--amber-l',t.amberL);p('--amber-text',t.amberTx);
+  p('--purple',t.purple);p('--purple-l',t.purpleL);p('--purple-text',t.purpleTx);
+  p('--shadow',t.shadow);
+})();
+</script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;transition:background .25s,color .25s}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HEADER */
+.header{background:var(--surf);border-bottom:1px solid var(--brd);padding:0 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;height:58px;box-shadow:0 2px 12px rgba(0,0,0,.07);backdrop-filter:blur(10px)}
+.header-brand{display:flex;align-items:center;gap:12px}
+.header-logo{width:36px;height:36px;background:var(--acc);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:var(--acc-text);flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.header-title{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-.3px}
+.header-sub{font-size:11px;color:var(--muted)}
+.back-btn{background:var(--surf2);border:1px solid var(--brd);border-radius:10px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;text-decoration:none;white-space:nowrap}
+.back-btn:hover{background:var(--acc-l);border-color:var(--acc);color:var(--acc);text-decoration:none}
+
+/* LAYOUT */
+.page{max-width:720px;margin:0 auto;padding:24px 16px 80px}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--acc) 0%,var(--acc2) 100%);border-radius:22px;padding:30px 24px;margin-bottom:24px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.hero::before{content:'';position:absolute;right:-20px;top:-20px;width:130px;height:130px;background:rgba(255,255,255,.08);border-radius:50%}
+.hero::after{content:'';position:absolute;right:30px;bottom:-36px;width:90px;height:90px;background:rgba(255,255,255,.06);border-radius:50%}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.15);border-radius:99px;padding:5px 12px;font-size:10px;font-weight:700;color:var(--acc-text);letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px;position:relative;z-index:1}
+.hero-icon{font-size:36px;margin-bottom:10px;position:relative;z-index:1;display:block}
+.hero h1{font-size:24px;font-weight:900;color:var(--acc-text);line-height:1.15;margin-bottom:8px;position:relative;z-index:1}
+.hero p{font-size:13px;color:var(--acc-text);opacity:.8;line-height:1.65;position:relative;z-index:1}
+.hero-stats{display:flex;gap:12px;margin-top:18px;position:relative;z-index:1;flex-wrap:wrap}
+.hero-stat{background:rgba(0,0,0,.13);border-radius:12px;padding:8px 14px}
+.hero-stat-val{font-size:16px;font-weight:900;color:var(--acc-text)}
+.hero-stat-lbl{font-size:10px;font-weight:600;color:var(--acc-text);opacity:.75}
+
+/* QUICK ACTIONS */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px}
+.quick-card{background:var(--surf);border:1px solid var(--brd);border-radius:16px;padding:18px 15px;display:flex;flex-direction:column;gap:7px;text-decoration:none;transition:all .18s;cursor:pointer;box-shadow:var(--shadow)}
+.quick-card:hover{background:var(--surf2);border-color:var(--acc);transform:translateY(-2px);text-decoration:none}
+.qc-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.qc-title{font-size:13px;font-weight:800;color:var(--text);line-height:1.3}
+.qc-sub{font-size:10px;color:var(--muted)}
+
+/* TOC */
+.toc{background:var(--surf);border:1px solid var(--brd);border-radius:16px;padding:14px;margin-bottom:28px;display:flex;flex-wrap:wrap;gap:6px;box-shadow:var(--shadow)}
+.toc-link{background:var(--surf2);border:1px solid var(--brd);border-radius:20px;padding:5px 13px;font-size:11px;font-weight:600;color:var(--text2);text-decoration:none;transition:all .15s}
+.toc-link:hover{background:var(--acc-l);border-color:var(--acc);color:var(--acc);text-decoration:none}
+
+/* SECTION HEADERS */
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;margin-top:28px;scroll-margin-top:72px}
+.section-header:first-child{margin-top:0}
+.section-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.section-title{font-size:15px;font-weight:800;color:var(--text)}
+.section-sub{font-size:11px;color:var(--muted)}
+
+/* INFO CARD */
+.info-card{background:var(--surf);border:1px solid var(--brd);border-radius:16px;overflow:hidden;margin-bottom:10px;box-shadow:var(--shadow)}
+.info-row{display:flex;align-items:flex-start;padding:14px 16px;border-bottom:1px solid var(--brd);gap:13px}
+.info-row:last-child{border-bottom:none}
+.info-row-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0;margin-top:2px}
+.info-row-text{flex:1}
+.info-row-label{font-size:13px;font-weight:700;color:var(--text)}
+.info-row-val{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.6}
+.info-row-val strong{color:var(--text)}
+.info-row-val code{background:var(--surf2);padding:1px 5px;border-radius:5px;font-size:11px}
+
+/* MODULE GRID */
+.module-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.module-card{background:var(--surf);border:1px solid var(--brd);border-radius:16px;padding:16px;box-shadow:var(--shadow);transition:all .18s}
+.module-card:hover{border-color:var(--acc);transform:translateY(-1px)}
+.module-icon{font-size:24px;margin-bottom:9px}
+.module-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:5px}
+.module-desc{font-size:11px;color:var(--text2);line-height:1.6}
+
+/* FAQ */
+.faq-list{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.faq-item{background:var(--surf);border:1px solid var(--brd);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);transition:border-color .15s}
+.faq-item.open{border-color:var(--acc)}
+.faq-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:15px 16px;background:none;border:none;cursor:pointer;text-align:left;gap:10px}
+.faq-btn:hover{background:var(--surf2)}
+.faq-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.faq-emoji{font-size:17px;flex-shrink:0}
+.faq-q{font-size:13px;font-weight:700;color:var(--text);line-height:1.4}
+.faq-chevron{font-size:20px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+.faq-item.open .faq-chevron{transform:rotate(90deg);color:var(--acc)}
+.faq-body{display:none;padding:4px 16px 16px 44px;font-size:12px;color:var(--text2);line-height:1.8;border-top:1px solid var(--brd)}
+.faq-item.open .faq-body{display:block}
+.faq-body strong{color:var(--text)}
+.faq-body ol,.faq-body ul{padding-left:16px;margin-top:6px}
+.faq-body li{margin-bottom:5px}
+.faq-body .step{background:var(--surf2);border-radius:10px;padding:10px 13px;margin-top:9px;font-size:11px;border-left:3px solid var(--acc)}
+.faq-body .tip{background:var(--acc-l);border:1px solid var(--acc-l);border-radius:10px;padding:9px 13px;margin-top:9px;font-size:11px;color:var(--acc);font-weight:600}
+
+/* ROLE CARDS */
+.role-card{background:var(--surf);border:1px solid var(--brd);border-radius:16px;padding:18px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow)}
+.role-badge{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.role-name{font-size:14px;font-weight:800;color:var(--text);margin-bottom:5px}
+.role-desc{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:9px}
+.role-perms{display:flex;flex-wrap:wrap;gap:5px}
+.perm-chip{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px}
+.perm-yes{background:var(--green-l);color:var(--green-text)}
+.perm-no{background:var(--red-l);color:var(--red-text)}
+
+/* SHORTCUT TABLE */
+.shortcut-table{background:var(--surf);border:1px solid var(--brd);border-radius:16px;overflow:hidden;margin-bottom:10px;box-shadow:var(--shadow)}
+.shortcut-row{display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid var(--brd);gap:12px}
+.shortcut-row:last-child{border-bottom:none}
+.shortcut-action{font-size:13px;font-weight:700;color:var(--text);min-width:180px;flex-shrink:0}
+
+/* ALERT BOXES */
+.alert-box{border-radius:14px;padding:14px 16px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.65}
+.alert-box.warning{background:var(--amber-l);border:1px solid rgba(180,83,9,.2);color:var(--amber-text)}
+.alert-box.info{background:var(--blue-l);border:1px solid rgba(27,111,232,.2);color:var(--blue-text)}
+.alert-box.success{background:var(--green-l);border:1px solid rgba(21,128,61,.2);color:var(--green-text)}
+.alert-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+
+/* CONTACT CARD */
+.contact-card{background:var(--surf);border:1px solid var(--brd);border-radius:16px;padding:22px;text-align:center;margin-bottom:12px;box-shadow:var(--shadow)}
+.contact-title{font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px}
+.contact-sub{font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.6}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.contact-btn{background:var(--surf2);border:1px solid var(--brd);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;text-decoration:none;transition:all .18s}
+.contact-btn:hover{background:var(--acc-l);border-color:var(--acc);transform:translateY(-2px);text-decoration:none}
+.contact-btn-icon{font-size:24px}
+.contact-btn-label{font-size:12px;font-weight:800;color:var(--text)}
+.contact-btn-sub{font-size:10px;color:var(--muted)}
+
+/* CONTACT FORM */
+.form-section{background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:22px;box-shadow:var(--shadow);margin-top:14px}
+.form-section-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px}
+.form-section-sub{font-size:11px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.field-label{display:block;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.field{width:100%;background:var(--surf2);border:1.5px solid var(--brd);border-radius:11px;padding:12px 14px;font-size:13px;color:var(--text);font-family:inherit;box-sizing:border-box;transition:border-color .15s,box-shadow .15s;outline:none;appearance:none}
+.field:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-l)}
+.field.input-error{border-color:var(--red)!important}
+.field-error{font-size:10px;color:var(--red-text);margin-top:3px;display:none}
+.field-error.visible{display:block}
+.form-group{margin-bottom:14px}
+.submit-btn{width:100%;background:var(--acc);color:var(--acc-text);border:none;border-radius:12px;padding:15px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:opacity .15s,transform .1s;font-family:inherit}
+.submit-btn:hover{opacity:.92;transform:translateY(-1px)}
+.submit-btn:disabled{opacity:.65;cursor:not-allowed;transform:none}
+.btn-success{background:var(--green)!important;color:#fff!important}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:var(--bg);border-radius:14px;padding:12px 20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:90vw}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.toast-error{background:var(--red);color:#fff}
+
+/* SPINNER */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--acc-text);border-radius:50%;animation:spin .7s linear infinite}
+.hidden{display:none!important}
+
+/* FOOTER */
+.footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--brd);text-align:center}
+.footer-logo{font-size:22px;font-weight:900;color:var(--acc);letter-spacing:-1px;margin-bottom:5px}
+.footer-sub{font-size:11px;color:var(--muted)}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--brd);margin:28px 0}
+
+@media(max-width:480px){.module-grid{grid-template-columns:1fr}.hero h1{font-size:20px}.shortcut-action{min-width:140px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">P</div>
+    <div>
+      <div class="header-title">POSH Help &amp; Support</div>
+      <div class="header-sub">Point of Sale Hub · v4.0</div>
+    </div>
+  </div>
+  <a href="javascript:void(0)" class="back-btn"
+     onclick="if(history.length>1)history.back();else window.close();">← Back to App</a>
+</div>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">🛟 Support Centre</div>
+    <span class="hero-icon">💬</span>
+    <h1>We're here to help</h1>
+    <p>Guides, FAQs, module walkthroughs, and direct support — everything you need to get the most out of POSH.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val">9</div><div class="hero-stat-lbl">Modules</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">&lt;24h</div><div class="hero-stat-lbl">Response</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">Free</div><div class="hero-stat-lbl">Forever</div></div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="quick-grid">
+    <a href="#getting-started" class="quick-card"><div class="qc-icon" style="background:var(--green-l)">🚀</div><div class="qc-title">Getting Started</div><div class="qc-sub">Set up in 5 min</div></a>
+    <a href="#modules" class="quick-card"><div class="qc-icon" style="background:var(--blue-l)">📦</div><div class="qc-title">App Modules</div><div class="qc-sub">What each tab does</div></a>
+    <a href="#faqs" class="quick-card"><div class="qc-icon" style="background:var(--amber-l)">❓</div><div class="qc-title">FAQ</div><div class="qc-sub">Common questions</div></a>
+    <a href="#contact" class="quick-card"><div class="qc-icon" style="background:var(--acc-l)">✉️</div><div class="qc-title">Contact Us</div><div class="qc-sub">Send us a message</div></a>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <a href="#getting-started" class="toc-link">🚀 Getting Started</a>
+    <a href="#modules" class="toc-link">📱 Modules</a>
+    <a href="#pos" class="toc-link">🛒 Making a Sale</a>
+    <a href="#stock" class="toc-link">📦 Stock</a>
+    <a href="#roles" class="toc-link">👥 Roles &amp; PINs</a>
+    <a href="#cloud" class="toc-link">☁️ Cloud &amp; Data</a>
+    <a href="#faqs" class="toc-link">❓ FAQs</a>
+    <a href="#tips" class="toc-link">💡 Tips</a>
+    <a href="#contact" class="toc-link">📞 Contact</a>
+  </div>
+
+  <!-- GETTING STARTED -->
+  <div id="getting-started" class="section-header">
+    <div class="section-icon" style="background:var(--green-l)">🚀</div>
+    <div><div class="section-title">Getting Started</div><div class="section-sub">First-time setup in 5 steps</div></div>
+  </div>
+  <div class="info-card">
+    <div class="info-row"><div class="info-row-icon">1️⃣</div><div class="info-row-text"><div class="info-row-label">Complete the Onboarding Wizard</div><div class="info-row-val">On first launch POSH walks you through naming your shop, choosing a theme, and setting your daily sales goal. This only runs once.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">2️⃣</div><div class="info-row-text"><div class="info-row-label">Add Your Products</div><div class="info-row-val">Go to <strong>Stock</strong> tab → tap <strong>+</strong> (top-right). Enter name, selling price, cost price, stock qty, and category. You can also scan a barcode.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">3️⃣</div><div class="info-row-text"><div class="info-row-label">Set Your PINs</div><div class="info-row-val">Default Admin PIN is <strong>4321</strong>, Staff PIN is <strong>1234</strong>. Change both via Sidebar (☰) → Change Admin PIN / Change Staff PIN.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">4️⃣</div><div class="info-row-text"><div class="info-row-label">Set a Daily Sales Goal</div><div class="info-row-val">Home tab → tap the goal ring or Settings → Daily Goal. POSH fires confetti 🎉 when you hit it.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">5️⃣</div><div class="info-row-text"><div class="info-row-label">Install as an App (PWA)</div><div class="info-row-val">Android: tap the Install App banner or Chrome → Add to Home Screen. iPhone: Safari Share → Add to Home Screen. Works fully offline once installed.</div></div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- MODULES -->
+  <div id="modules" class="section-header">
+    <div class="section-icon" style="background:var(--blue-l)">📱</div>
+    <div><div class="section-title">App Modules</div><div class="section-sub">What every tab and section does</div></div>
+  </div>
+  <div class="module-grid">
+    <div class="module-card"><div class="module-icon">🏠</div><div class="module-title">Home — Dashboard</div><div class="module-desc">Daily summary: revenue, profit, transaction count, goal progress, low-stock alerts, and recent sales with 7-day sparklines.</div></div>
+    <div class="module-card"><div class="module-icon">🛒</div><div class="module-title">POS — Point of Sale</div><div class="module-desc">Main selling screen. Tap products, choose payment method (Cash, M-Pesa, Card, Credit), and confirm. Stock updates automatically.</div></div>
+    <div class="module-card"><div class="module-icon">📦</div><div class="module-title">Stock — Inventory</div><div class="module-desc">Add, edit, and manage all products. Restock, set low-stock alerts, and scan barcodes. <em>Admin only.</em></div></div>
+    <div class="module-card"><div class="module-icon">📊</div><div class="module-title">Reports</div><div class="module-desc">Revenue, gross profit, expenses, and net profit for Today / Week / Month / All Time with charts and exports. <em>Admin only.</em></div></div>
+    <div class="module-card"><div class="module-icon">🧾</div><div class="module-title">History</div><div class="module-desc">Every completed sale with full item breakdown, payment method, profit, and timestamp. Filter by date. <em>Admin only.</em></div></div>
+    <div class="module-card"><div class="module-icon">📒</div><div class="module-title">Credit Book</div><div class="module-desc">Track credit customers. See who owes what, mark payments, send WhatsApp reminders, and log partial payments.</div></div>
+    <div class="module-card"><div class="module-icon">👤</div><div class="module-title">CRM — Customers</div><div class="module-desc">Customer directory with purchase history, total spend, and outstanding credit for building repeat-customer relationships.</div></div>
+    <div class="module-card"><div class="module-icon">⚙️</div><div class="module-title">Settings</div><div class="module-desc">Shop name, goal, currency, theme, idle timer, storage mode, and staff accounts. <em>Admin only.</em></div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- MAKING A SALE -->
+  <div id="pos" class="section-header">
+    <div class="section-icon" style="background:var(--acc-l)">🛒</div>
+    <div><div class="section-title">Making a Sale — Step by Step</div><div class="section-sub">From product tap to confirmed receipt</div></div>
+  </div>
+  <div class="info-card">
+    <div class="info-row"><div class="info-row-icon">①</div><div class="info-row-text"><div class="info-row-label">Open the POS Tab</div><div class="info-row-val">Tap <strong>POS</strong> in the bottom nav. You'll see your product grid with stock badges.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">②</div><div class="info-row-text"><div class="info-row-label">Tap Products to Add to Cart</div><div class="info-row-val">Each tap adds 1 unit. The cart FAB shows the running total. Tap it to adjust quantities or remove items.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">③</div><div class="info-row-text"><div class="info-row-label">Tap Checkout</div><div class="info-row-val">Opens the receipt preview. Enter the amount tendered to auto-calculate change.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">④</div><div class="info-row-text"><div class="info-row-label">Choose Payment Method</div><div class="info-row-val"><strong>Cash</strong> — physical money, enter amount for change calculator.<br><strong>M-Pesa</strong> — mobile money.<br><strong>Card</strong> — debit/credit card.<br><strong>Credit</strong> — auto-adds to Credit Book.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">⑤</div><div class="info-row-text"><div class="info-row-label">Confirm Sale</div><div class="info-row-val">Tap <strong>Confirm Sale</strong>. Stock is deducted, the sale is recorded, and a cha-ching sound plays 🎵. Cart clears automatically.</div></div></div>
+  </div>
+  <div class="alert-box info"><span class="alert-icon">💡</span><span><strong>Pro tip:</strong> Star (⭐) your most-sold products to pin them as Favourites at the top of the POS screen for faster checkout.</span></div>
+
+  <div class="divider"></div>
+
+  <!-- STOCK -->
+  <div id="stock" class="section-header">
+    <div class="section-icon" style="background:var(--blue-l)">📦</div>
+    <div><div class="section-title">Stock &amp; Inventory</div><div class="section-sub">Adding products, restocking, and product types</div></div>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">➕</span><span class="faq-q">How do I add a new product?</span></div><span class="faq-chevron">›</span></button><div class="faq-body">Go to <strong>Stock</strong> → tap the <strong>+</strong> button (top-right).<div class="step">Fill in: Name · Category · Selling Price · Cost Price · Stock Qty · Unit · Low Stock Alert · Supplier (optional)</div>Select the <strong>Product Type</strong>:<ul><li><strong>Standard</strong> — regular packaged items</li><li><strong>Bulk / Loose</strong> — sold by weight or volume</li><li><strong>Service</strong> — no stock tracking (airtime, M-Pesa, printing)</li></ul>Tap <strong>Save</strong>.</div></div>
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">📥</span><span class="faq-q">How do I restock / add more stock?</span></div><span class="faq-chevron">›</span></button><div class="faq-body">In the <strong>Stock</strong> tab, find the product and tap the <strong>+📦</strong> restock button. Enter the quantity received and optionally the cost paid. Tap <strong>Add Stock</strong>.</div></div>
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">🔔</span><span class="faq-q">How do low-stock alerts work?</span></div><span class="faq-chevron">›</span></button><div class="faq-body">Each product has a <strong>Low Stock Alert</strong> threshold (default: 5). When stock drops to or below this number the product card shows an amber badge and the Dashboard shows a warning.<div class="tip">💡 Set it to your typical reorder point — e.g. if you reorder when you have 10 left, set the alert to 10.</div></div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ROLES & PINs -->
+  <div id="roles" class="section-header">
+    <div class="section-icon" style="background:var(--amber-l)">👥</div>
+    <div><div class="section-title">Roles &amp; PINs</div><div class="section-sub">Admin vs Staff — who can do what</div></div>
+  </div>
+  <div class="role-card">
+    <div class="role-badge" style="background:var(--amber-l)">👑</div>
+    <div style="flex:1"><div class="role-name">Admin — Full Access</div><div class="role-desc">Owner/manager role. Default PIN: <strong>4321</strong>. Has access to everything including sales data, expenses, settings, and staff management.</div><div class="role-perms"><span class="perm-chip perm-yes">✅ POS &amp; Sales</span><span class="perm-chip perm-yes">✅ Stock</span><span class="perm-chip perm-yes">✅ Reports</span><span class="perm-chip perm-yes">✅ History</span><span class="perm-chip perm-yes">✅ Settings</span><span class="perm-chip perm-yes">✅ Credit Book</span><span class="perm-chip perm-yes">✅ Staff Mgmt</span><span class="perm-chip perm-yes">✅ Exports</span></div></div>
+  </div>
+  <div class="role-card">
+    <div class="role-badge" style="background:var(--blue-l)">👤</div>
+    <div style="flex:1"><div class="role-name">Staff — POS Mode</div><div class="role-desc">Cashier/sales rep role. Default PIN: <strong>1234</strong>. Can sell, view credit book, and use CRM. Cannot access financials or settings.</div><div class="role-perms"><span class="perm-chip perm-yes">✅ POS &amp; Sales</span><span class="perm-chip perm-yes">✅ Credit Book</span><span class="perm-chip perm-yes">✅ CRM</span><span class="perm-chip perm-no">❌ Stock (edit)</span><span class="perm-chip perm-no">❌ Reports</span><span class="perm-chip perm-no">❌ History</span><span class="perm-chip perm-no">❌ Settings</span><span class="perm-chip perm-no">❌ Exports</span></div></div>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">🔐</span><span class="faq-q">How do I change the Admin or Staff PIN?</span></div><span class="faq-chevron">›</span></button><div class="faq-body">Log in as <strong>Admin</strong> → Sidebar (☰) → <strong>Change Admin PIN</strong> or <strong>Change Staff PIN</strong>.<div class="tip">💡 Always change both default PINs before giving a device to staff.</div></div></div>
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">🆘</span><span class="faq-q">I forgot my PIN — how do I recover?</span></div><span class="faq-chevron">›</span></button><div class="faq-body">On the PIN screen tap <strong>Forgot PIN?</strong>. Enter the registered recovery phone number. If it matches, you can immediately set a new PIN.<div class="step">If you also forgot the recovery number, contact support at <a href="mailto:ojiambodavid598@gmail.com">ojiambodavid598@gmail.com</a> with your Shop Code.</div></div></div>
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">👥</span><span class="faq-q">How do I add a staff member?</span></div><span class="faq-chevron">›</span></button><div class="faq-body">Admin → Sidebar (☰) → <strong>Staff Accounts</strong> → <strong>+ Add Staff</strong>. Create a name and PIN for them. Share your <strong>Shop Code</strong> (Sidebar → Share Shop Code) so they can log in on their own device.</div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- CLOUD & DATA -->
+  <div id="cloud" class="section-header">
+    <div class="section-icon" style="background:var(--blue-l)">☁️</div>
+    <div><div class="section-title">Cloud Sync &amp; Data</div><div class="section-sub">Backup, restore, offline mode, and multi-device</div></div>
+  </div>
+  <div class="info-card">
+    <div class="info-row"><div class="info-row-icon">🔒</div><div class="info-row-text"><div class="info-row-label">Local Mode (Default)</div><div class="info-row-val">All data stays on this device in the browser's localStorage. Fast, private, works 100% offline. Data is lost if you clear browser storage or switch browsers.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">☁️</div><div class="info-row-text"><div class="info-row-label">Cloud Mode</div><div class="info-row-val">Enable in Settings → Storage Mode. Data syncs to Firebase in real-time. Access from multiple devices using your Shop Code. Requires internet for initial sync.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">💾</div><div class="info-row-text"><div class="info-row-label">Backup Your Data</div><div class="info-row-val">Sidebar (☰) → <strong>Backup Data</strong> downloads a <code>.json</code> file. To restore, Settings → Restore Backup → select the file.</div></div></div>
+    <div class="info-row"><div class="info-row-icon">📊</div><div class="info-row-text"><div class="info-row-label">Export Sales (CSV / Excel / PDF)</div><div class="info-row-val">Sidebar (☰) → <strong>Export to Excel</strong> or <strong>Export PDF Report</strong>. Also available from the Reports tab.</div></div></div>
+  </div>
+  <div class="alert-box warning"><span class="alert-icon">⚠️</span><span><strong>Important:</strong> In Local Mode, clearing your browser's site data will erase all POSH data. Back up regularly or switch to Cloud Mode.</span></div>
+
+  <div class="divider"></div>
+
+  <!-- FAQs -->
+  <div id="faqs" class="section-header">
+    <div class="section-icon" style="background:var(--amber-l)">❓</div>
+    <div><div class="section-title">Frequently Asked Questions</div><div class="section-sub">Quick answers to the most common issues</div></div>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">📴</span><span class="faq-q">Does POSH work without internet?</span></div><span class="faq-chevron">›</span></button><div class="faq-body">Yes. All core features — POS, stock, reports, credit book — work completely offline once the app is loaded. In <strong>Local Mode</strong> (default) no internet is ever needed. In <strong>Cloud Mode</strong>, offline changes sync when the connection returns.<div class="tip">💡 Install POSH as a PWA for the best offline experience.</div></div></div>
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">📱</span><span class="faq-q">How do I use POSH on two devices at the same time?</span></div><span class="faq-chevron">›</span></button><div class="faq-body">Switch to <strong>Cloud Mode</strong> on both devices (Settings → Storage Mode). On the second device, enter your <strong>Shop Code</strong> at the login screen. Both devices will sync in real-time.<div class="step">Admin sets up Cloud Mode → shares Shop Code → staff enters it on their device → data syncs automatically.</div></div></div>
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">🧾</span><span class="faq-q">Can I send a receipt to the customer?</span></div><span class="faq-chevron">›</span></button><div class="faq-body">Yes! At the checkout screen tap <strong>Share via WhatsApp</strong>. This opens WhatsApp with a pre-formatted receipt message including all items, quantities, and the total.</div></div>
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">💳</span><span class="faq-q">How do I handle a credit sale?</span></div><span class="faq-chevron">›</span></button><div class="faq-body">At checkout choose <strong>Credit</strong> as the payment method. The sale is recorded and automatically added to the <strong>Credit Book</strong>. When the customer pays, open Credit Book → find their entry → tap <strong>Mark Paid</strong>.<div class="tip">💡 For partial payments, edit the record and enter the partial amount paid.</div></div></div>
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">📉</span><span class="faq-q">My profit numbers look wrong</span></div><span class="faq-chevron">›</span></button><div class="faq-body">Profit = <strong>Selling Price − Cost Price</strong> per item. If profit shows as 0, check that you entered a <strong>Cost Price</strong> in the product form.<div class="step">Reports shows: Gross Profit (sales profit only) and Net Profit (gross profit minus expenses).</div></div></div>
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">📸</span><span class="faq-q">The barcode scanner isn't working</span></div><span class="faq-chevron">›</span></button><div class="faq-body"><ol><li>Grant <strong>camera permission</strong> to the browser.</li><li>Hold the camera steady 10–20cm from the barcode in good lighting.</li><li>If it still fails, type the barcode number manually — POSH will match it next time.</li></ol></div></div>
+    <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(this)"><div class="faq-left"><span class="faq-emoji">💾</span><span class="faq-q">My data disappeared after refreshing the page</span></div><span class="faq-chevron">›</span></button><div class="faq-body">POSH in Local Mode stores data in <strong>browser localStorage</strong>. Refreshing is fine — data persists. Clearing browser data / site data / cache wipes it. Private/incognito tabs won't show your data.<div class="step">Fix: Backup regularly (Sidebar → Backup Data) OR switch to Cloud Mode in Settings.</div></div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- TIPS -->
+  <div id="tips" class="section-header">
+    <div class="section-icon" style="background:var(--purple-l)">💡</div>
+    <div><div class="section-title">Pro Tips &amp; Shortcuts</div><div class="section-sub">Get more out of POSH faster</div></div>
+  </div>
+  <div class="shortcut-table">
+    <div class="shortcut-row"><div class="shortcut-action">⭐ Pin favourite products</div><div style="font-size:11px;color:var(--text2)">Tap ★ on any product card in POS to pin it to the Favourites strip for one-tap access</div></div>
+    <div class="shortcut-row"><div class="shortcut-action">🔁 Repeat last sale</div><div style="font-size:11px;color:var(--text2)">Dashboard → Repeat Last Sale to instantly re-add the previous cart</div></div>
+    <div class="shortcut-row"><div class="shortcut-action">📲 WhatsApp debt reminder</div><div style="font-size:11px;color:var(--text2)">Credit Book → Remind on any unpaid entry to send a pre-written WhatsApp message</div></div>
+    <div class="shortcut-row"><div class="shortcut-action">⚖️ Sell bulk items</div><div style="font-size:11px;color:var(--text2)">Add product as Bulk type → enter price per kg/litre → at POS enter the weight and POSH calculates the total</div></div>
+    <div class="shortcut-row"><div class="shortcut-action">💵 Change calculator</div><div style="font-size:11px;color:var(--text2)">At checkout with Cash, enter the amount tendered — change due appears instantly</div></div>
+    <div class="shortcut-row"><div class="shortcut-action">📋 Purchase Orders</div><div style="font-size:11px;color:var(--text2)">Sidebar → Purchase Orders — create formal restock orders per supplier</div></div>
+    <div class="shortcut-row"><div class="shortcut-action">📅 History by date</div><div style="font-size:11px;color:var(--text2)">History tab → calendar icon to pick any specific date and see that day's full sales</div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- CONTACT -->
+  <div id="contact" class="section-header">
+    <div class="section-icon" style="background:var(--acc-l)">📞</div>
+    <div><div class="section-title">Contact Support</div><div class="section-sub">Mon – Sat · 8 am – 8 pm EAT · Replies within 24 hours</div></div>
+  </div>
+
+  <div class="alert-box success"><span class="alert-icon">⚡</span><span>We read every message personally and typically reply within 24 hours. Include your <strong>Shop Code</strong> for faster help.</span></div>
+
+  <div class="contact-card">
+    <div class="contact-title">Reach Us Directly</div>
+    <div class="contact-sub">Choose whichever channel works best for you.</div>
+    <div class="contact-grid">
+      <a href="mailto:ojiambodavid598@gmail.com?subject=POSH%20Support%20Request" class="contact-btn">
+        <div class="contact-btn-icon">✉️</div>
+        <div class="contact-btn-label">Email Support</div>
+        <div class="contact-btn-sub">ojiambodavid598@gmail.com</div>
+      </a>
+      <a href="https://wa.me/254717385810?text=Hi%2C%20I%20need%20help%20with%20POSH%20POS." target="_blank" class="contact-btn">
+        <div class="contact-btn-icon">📲</div>
+        <div class="contact-btn-label">WhatsApp</div>
+        <div class="contact-btn-sub">+254 717 385 810</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Inline contact form -->
+  <div class="form-section">
+    <div class="form-section-title">Send Us a Message</div>
+    <div class="form-section-sub">We read every message personally. Expect a reply within 24 hours. ✨</div>
+
+    <form id="contactForm" onsubmit="handleSubmit(event)" novalidate>
+      <div class="form-group">
+        <label class="field-label">Your Name</label>
+        <input id="from_name" class="field" type="text" placeholder="e.g. Jane Wanjiru" autocomplete="name"/>
+        <div id="err-name" class="field-error">Please enter your name (min 2 characters)</div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Email Address</label>
+        <input id="reply_to" class="field" type="email" placeholder="you@example.com" autocomplete="email"/>
+        <div id="err-email" class="field-error">Please enter a valid email address</div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Subject</label>
+        <select id="subject" class="field">
+          <option value="">— Choose a topic —</option>
+          <option value="Bug report — something isn't working">🐛 Bug report — something isn't working</option>
+          <option value="Feature request — I'd love to see...">💡 Feature request — I'd love to see...</option>
+          <option value="Account or sync help">☁️ Account / sync help</option>
+          <option value="PIN or login recovery">🔐 PIN or login recovery</option>
+          <option value="Billing or donation inquiry">💳 Billing or donation inquiry</option>
+          <option value="General question">💬 General question</option>
+        </select>
+        <div id="err-subject" class="field-error">Please select a subject</div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Message</label>
+        <textarea id="message" class="field" rows="4" placeholder="Describe your issue or question in detail. The more info you give, the faster we can help!" style="resize:vertical;font-family:inherit"></textarea>
+        <div id="err-message" class="field-error">Message must be at least 10 characters</div>
+      </div>
+      <button type="submit" id="submitBtn" class="submit-btn">
+        <span id="btnSpinner" class="spinner hidden"></span>
+        <span id="btnText">Send Message</span>
+        <span id="btnArrow">✉️</span>
+      </button>
+    </form>
+  </div>
+
+  <div class="info-card" style="margin-top:16px">
+    <div class="info-row"><div class="info-row-icon">👨‍💻</div><div class="info-row-text"><div class="info-row-label">Built by David Ojiambo</div><div class="info-row-val">Nairobi, Kenya · Full-stack developer · <a href="mailto:ojiambodavid598@gmail.com">ojiambodavid598@gmail.com</a></div></div></div>
+    <div class="info-row"><div class="info-row-icon">📱</div><div class="info-row-text"><div class="info-row-label">POSH Version</div><div class="info-row-val">v4.0 · Point of Sale Hub · Built for Kenyan small businesses</div></div></div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-logo">POSH</div>
+    <div class="footer-sub">Point of Sale Hub · Free forever · Built with ❤️ in Nairobi</div>
+  </div>
+
+</div><!-- .page -->
+
+<div id="toast"><span class="toast-icon" style="margin-right:6px"></span><span class="toast-msg"></span></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/index.min.js"></script>
+<script src="email.js"></script>
+<script>
+function toggleFaq(btn){
+  var item=btn.closest('.faq-item');
+  if(!item)return;
+  var open=item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(function(el){el.classList.remove('open');});
+  if(!open)item.classList.add('open');
+}
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var t=document.querySelector(this.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}
+  });
+});
+</script>
+</body>
+</html>
