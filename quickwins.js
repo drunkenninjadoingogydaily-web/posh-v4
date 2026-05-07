@@ -636,7 +636,7 @@ function buildProfitabilityData(salesList){
 function renderProfitabilityTable(rows){
   if(!rows.length) return '<div style="text-align:center;color:var(--muted);font-size:12px;padding:14px">No sales data</div>';
   return `<div style="overflow-x:auto"><table class="profit-table"><thead><tr><th>Product</th><th style="text-align:right">Revenue</th><th style="text-align:right">Profit</th><th style="text-align:right">Margin</th></tr></thead><tbody>
-    ${rows.map(r=>`<tr><td><div style="display:flex;align-items:center;gap:7px"><span>${r.emoji}</span><div><div style="font-size:11px;font-weight:700;color:var(--text)">${r.name}</div><div style="font-size:9px;color:var(--muted)">${r.qty} sold</div></div></div></td>
+    ${rows.map(r=>`<tr><td><div><div style="font-size:11px;font-weight:700;color:var(--text)">${r.name}</div><div style="font-size:9px;color:var(--muted)">${r.qty} sold</div></div></td>
     <td style="text-align:right;font-size:12px;font-weight:700;color:var(--text)">${fmt(r.rev)}</td>
     <td style="text-align:right;font-size:12px;font-weight:700;color:${r.profit>=0?'var(--green-text)':'var(--red-text)'}">${fmt(r.profit)}</td>
     <td style="text-align:right"><div style="font-size:12px;font-weight:800;color:${r.margin>=30?'var(--green-text)':r.margin>=15?'var(--amber-text)':'var(--red-text)'}">${r.margin}%</div>
@@ -1180,7 +1180,7 @@ window.updateDiscountPreview = function(){
 // ═══════════════════════════════════════════════════════
 //  17. THEME SWITCHER
 // ═══════════════════════════════════════════════════════
-var currentTheme = localStorage.getItem('posh_theme') || 'midnight';
+var currentTheme = localStorage.getItem('posh_theme') || 'ocean';
 
 function setTheme(name){
   currentTheme = name;
@@ -1383,12 +1383,16 @@ window.createPurchaseOrder= function(){ toast('📦 Purchase order — coming so
 window.sharePOWhatsApp    = function(){ const msg='📦 POSH Purchase Order\n' + (typeof products!=='undefined'?products:[]).filter(p=>p.stock<=p.lowAt).map(p=>`${p.name}: needs restock (${p.stock} left, supplier: ${p.supplier||'—'})`).join('\n'); window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank'); };
 
 // ═══════════════════════════════════════════════════════
-//  STAFF ACCOUNTS STUB
-// ═══════════════════════════════════════════════════════
-window.openStaffAccounts = window.openStaffModal;
-window.closeStaffAccounts= window.closeStaffModal;
-window.openAddStaffModal = window.openStaffModal;
-window.saveStaff         = function(){ toast('👥 Staff accounts — coming in next update'); if(typeof closeStaffModal==='function') closeStaffModal(); };
+//  STAFF ACCOUNTS — aliases only; full implementation in staff.js
+//  BUG FIX: The old stub block here set saveStaff/renderStaffList/deleteStaff
+//  to dummy functions BEFORE staff.js loaded, and then the duplicate block
+//  below (section 6) overwrote staff.js's correct implementations again with
+//  a version that used the wrong storage key ('posh_staff_list' instead of
+//  window.staffAccounts / posh_data).  Both blocks are now removed/replaced
+//  so staff.js owns the authoritative implementation.
+//  These modal-open/close aliases are safe since staff.js also sets them.
+window.openStaffAccounts = window.openStaffAccounts || window.openStaffModal;
+window.closeStaffAccounts= window.closeStaffAccounts || window.closeStaffModal;
 
 // ═══════════════════════════════════════════════════════
 //  CRM / CUSTOMER STUB
@@ -1583,13 +1587,13 @@ window.shareReceiptWhatsApp = function () {
 
 window.addVariantRow      = function(){ toast('Product variants — coming in next update'); };
 window.openNotifPanel     = function(){ if(typeof switchTab==='function') switchTab('reports'); };
+// BUG FIX: was a separate no-arg stub duplicating logic and missing Loyalty/Split
+// wrappers. Now delegates to handlePayMethodChange (the real implementation below)
+// so both call signatures work: handlePaymentMethodChange() from app.js onchange
+// wrapper, and handlePayMethodChange(value) from HTML onchange attributes.
 window.handlePaymentMethodChange = function(){
   const pm = ($id('pay-method') || {}).value;
-  const cw = $id('credit-customer-wrap');
-  if(cw) cw.style.display = pm==='Credit'?'block':'none';
-  const sp = $id('split-payment-section');
-  if(sp && pm!=='Split') sp.style.display='none';
-  if(pm==='Split') openSplitPayment();
+  if(typeof window.handlePayMethodChange === 'function') window.handlePayMethodChange(pm);
 };
 window.setupBiometric = window.openBiometricSetup;
 
@@ -1883,60 +1887,11 @@ window.deleteCRMCustomer = function(id){
   }
 };
 
-// ─── 6. Staff list renderer ───
-window.renderStaffList = function(){
-  const listEl = $id('staff-accounts-list');
-  if(!listEl) return;
-  const staffData = safeParseLS('posh_staff_list',[]);
-  // Always show at least the two built-in roles
-  const builtIn = [
-    {id:'builtin-admin', name:'Admin Account', role:'admin', pin:'••••', builtin:true},
-    {id:'builtin-staff', name:'Staff Account', role:'staff', pin:'••••', builtin:true},
-  ];
-  const all = [...builtIn, ...staffData];
-  if(all.length === 0){
-    listEl.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)"><div style="font-size:36px;margin-bottom:10px">👥</div><div style="font-size:14px;font-weight:700">No staff added yet</div></div>';
-    return;
-  }
-  const roleColors = {admin:'var(--amber-l)',supervisor:'var(--blue-l)',staff:'var(--surf2)'};
-  const roleIcons  = {admin:'👑',supervisor:'🔑',staff:'👤'};
-  listEl.innerHTML = all.map(s=>`
-    <div style="background:var(--surface,var(--surf2));border:1px solid var(--border,var(--brd));border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:11px">
-      <div style="width:40px;height:40px;border-radius:50%;background:${roleColors[s.role]||'var(--surf2)'};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${roleIcons[s.role]||'👤'}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:700;color:var(--text)">${s.name}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;text-transform:capitalize">${s.role}${s.phone?' · 📞 '+s.phone:''}</div>
-      </div>
-      ${!s.builtin?`<button onclick="deleteStaff(${s.id})" style="font-size:10px;font-weight:700;background:var(--red-l);border:1px solid var(--red);border-radius:7px;padding:5px 8px;cursor:pointer;color:var(--red-text)">🗑</button>`:'<span style="font-size:10px;color:var(--muted);font-weight:600">Built-in</span>'}
-    </div>`).join('');
-};
-
-window.saveStaff = function(){
-  const name  = ($id('sf-name')  || {}).value?.trim() || '';
-  const role  = ($id('sf-role')  || {}).value || 'staff';
-  const pin   = ($id('sf-pin')   || {}).value || '';
-  const phone = ($id('sf-phone') || {}).value?.trim() || '';
-  if(!name){ toast('⚠️ Name required'); return; }
-  if(pin.length !== 4 || !/^\d{4}$/.test(pin)){ toast('⚠️ Enter a valid 4-digit PIN'); return; }
-  const staffData = safeParseLS('posh_staff_list',[]);
-  staffData.push({id:Date.now(), name, role, pin, phone, createdAt:Date.now()});
-  localStorage.setItem('posh_staff_list', JSON.stringify(staffData));
-  closeStaffModal();
-  renderStaffList();
-  addAuditEntry('STAFF', 'Added staff: ' + name + ' ('+role+')');
-  toast('✅ Staff member added');
-};
-
-window.deleteStaff = function(id){
-  if(typeof showConfirm === 'function'){
-    showConfirm('Remove Staff?','This cannot be undone.',()=>{
-      const staffData = safeParseLS('posh_staff_list',[]).filter(s=>s.id!==id);
-      localStorage.setItem('posh_staff_list', JSON.stringify(staffData));
-      renderStaffList();
-      toast('🗑 Staff removed');
-    }, true);
-  }
-};
+// ─── 6. Staff list renderer — implemented in staff.js (window.staffAccounts / posh_data)
+//    BUG FIX: This block previously redeclared renderStaffList/saveStaff/deleteStaff
+//    using 'posh_staff_list' (a different, orphaned key), overwriting the correct
+//    implementations staff.js had already registered.  Removed entirely.
+//    staff.js is the single source of truth for all staff account functions.
 
 // ─── 7. Purchase Order — populate low stock list ───
 (function patchPurchaseOrders(){

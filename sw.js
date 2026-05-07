@@ -14,6 +14,7 @@ var ASSETS = [
   '/barcode.js',
   '/features.js',
   '/product-images.js',
+  '/image-sync.js',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'

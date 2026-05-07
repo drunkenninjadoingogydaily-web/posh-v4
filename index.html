@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="midnight">
+<html lang="en" data-theme="ocean">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
@@ -23,28 +23,67 @@
 <body>
 
 <!-- ═══════════════════════════════════
-  SPLASH SCREEN
+  THEME BOOT — runs before any paint so there's zero colour flash
+═══════════════════════════════════ -->
+<script>
+(function(){
+  var THEMES={
+    midnight:{bg:'#0A0E17',acc:'#FFB800',acc2:'#FF8C00',text:'#F1F5F9',tagline:'#8EA0BC',gridLine:'rgba(255,255,255,.03)',glow:'rgba(255,184,0,.18)',glow2:'rgba(255,184,0,.07)',barFrom:'#FFD54A',barTo:'#FFB800',barShadow:'rgba(255,184,0,.38)',particleOp:'.15'},
+    emerald: {bg:'#F0F4F8',acc:'#00A67E',acc2:'#007F61',text:'#0D1B2A',tagline:'#5A7184',gridLine:'rgba(0,0,0,.04)',glow:'rgba(0,166,126,.14)',glow2:'rgba(0,166,126,.06)',barFrom:'#00D68F',barTo:'#00A67E',barShadow:'rgba(0,166,126,.35)',particleOp:'.25'},
+    terracotta:{bg:'#FFF5EE',acc:'#E8521A',acc2:'#F5933A',text:'#1A0A00',tagline:'#A07060',gridLine:'rgba(0,0,0,.04)',glow:'rgba(232,82,26,.15)',glow2:'rgba(232,82,26,.06)',barFrom:'#F5933A',barTo:'#E8521A',barShadow:'rgba(232,82,26,.38)',particleOp:'.22'},
+    ocean:   {bg:'#EEF4FC',acc:'#1B6FE8',acc2:'#00C2FF',text:'#0A1A38',tagline:'#4870A0',gridLine:'rgba(0,0,0,.04)',glow:'rgba(27,111,232,.16)',glow2:'rgba(0,194,255,.07)',barFrom:'#00C2FF',barTo:'#1B6FE8',barShadow:'rgba(27,111,232,.38)',particleOp:'.22'},
+    obsidian:{bg:'#0C0C0E',acc:'#AAFF00',acc2:'#88CC00',text:'#F4F4F6',tagline:'#888898',gridLine:'rgba(255,255,255,.025)',glow:'rgba(170,255,0,.14)',glow2:'rgba(170,255,0,.05)',barFrom:'#CCFF44',barTo:'#AAFF00',barShadow:'rgba(170,255,0,.35)',particleOp:'.18'}
+  };
+  var key=localStorage.getItem('posh_theme')||'ocean';
+  var t=THEMES[key]||THEMES.ocean;
+  var r=document.documentElement;
+  // Set the correct data-theme so styles.css picks up the right palette
+  r.setAttribute('data-theme',key);
+  // Also pipe splash-specific variables so the splash renders in correct colours
+  // before styles.css has done its first paint
+  r.style.setProperty('--splash-bg',    t.bg);
+  r.style.setProperty('--splash-acc',   t.acc);
+  r.style.setProperty('--splash-acc2',  t.acc2);
+  r.style.setProperty('--splash-text',  t.text);
+  r.style.setProperty('--splash-tag',   t.tagline);
+  r.style.setProperty('--splash-grid',  t.gridLine);
+  r.style.setProperty('--splash-glow',  t.glow);
+  r.style.setProperty('--splash-glow2', t.glow2);
+  r.style.setProperty('--splash-bar-from',   t.barFrom);
+  r.style.setProperty('--splash-bar-to',     t.barTo);
+  r.style.setProperty('--splash-bar-shadow', t.barShadow);
+  r.style.setProperty('--splash-particle',   t.particleOp);
+})();
+</script>
+
+<!-- ═══════════════════════════════════
+  SPLASH SCREEN — Reveal Loader
 ═══════════════════════════════════ -->
 <div id="splash">
-  <div class="splash-logo-ring">
-    <svg viewBox="0 0 52 52" fill="none" width="52" height="52">
-      <rect width="52" height="52" rx="14" fill="rgba(255,255,255,0.15)"/>
-      <rect x="10" y="10" width="13" height="16" rx="3.5" fill="white" opacity="0.95"/>
-      <rect x="10" y="29" width="13" height="10" rx="3" fill="white" opacity="0.55"/>
-      <rect x="26" y="10" width="16" height="11" rx="3" fill="white" opacity="0.55"/>
-      <rect x="26" y="24" width="16" height="15" rx="3.5" fill="rgba(255,184,0,0.9)" opacity="0.95"/>
-    </svg>
-  </div>
-  <div class="splash-letters">
-    <span class="splash-letter">P</span>
-    <span class="splash-letter">O</span>
-    <span class="splash-letter accent">S</span>
-    <span class="splash-letter">H</span>
-  </div>
-  <div class="splash-tagline">Point of Sale Hub</div>
-  <div class="splash-bar-bg"><div class="splash-bar-fill"></div></div>
-  <div class="splash-dots">
-    <div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div>
+  <!-- background layers -->
+  <div class="spl-bg-radials"></div>
+  <div class="spl-grid"></div>
+  <div class="spl-vignette"></div>
+  <!-- floating particles -->
+  <div class="spl-particle"></div>
+  <div class="spl-particle"></div>
+  <div class="spl-particle"></div>
+  <div class="spl-particle"></div>
+  <div class="spl-particle"></div>
+  <!-- logo + text -->
+  <div class="spl-wrapper">
+    <div class="spl-logo">
+      <div class="spl-slot" data-letter="P"><div class="spl-letter">P</div><div class="spl-bar"></div></div>
+      <div class="spl-slot" data-letter="O"><div class="spl-letter">O</div><div class="spl-bar"></div></div>
+      <div class="spl-slot spl-accent" data-letter="S"><div class="spl-letter">S</div><div class="spl-bar"></div></div>
+      <div class="spl-slot" data-letter="H"><div class="spl-letter">H</div><div class="spl-bar"></div></div>
+    </div>
+    <div class="spl-divider"></div>
+    <div class="spl-tagline">Point of Sale Hub</div>
+    <div class="spl-progress-wrap">
+      <div class="spl-progress-track"><div class="spl-progress-fill"></div></div>
+    </div>
+    <div class="spl-status">OPENING SHOP…</div>
   </div>
 </div>
 
@@ -1232,8 +1271,8 @@
     <!-- Dual price (Fish/Omena) -->
     <div id="pf-price-dual-wrap" style="display:none">
       <div class="form-row">
-        <div class="form-group"><label class="field-label">🐟 Fresh Price *</label><input class="field" id="pf-price-fresh" type="number" placeholder="0"/></div>
-        <div class="form-group"><label class="field-label">🍳 Fried Price *</label><input class="field" id="pf-price-fried" type="number" placeholder="0"/></div>
+        <div class="form-group"><label class="field-label">🛍️ Fresh Price *</label><input class="field" id="pf-price-fresh" type="number" placeholder="0"/></div>
+        <div class="form-group"><label class="field-label">🛍️ Fried Price *</label><input class="field" id="pf-price-fried" type="number" placeholder="0"/></div>
       </div>
     </div>
     <div class="form-row">

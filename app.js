@@ -57,7 +57,7 @@ var POSH_DONATE = (function(){
 // ═════════════════════════════════════
 //  DATA
 // ═════════════════════════════════════
-const EMOJIS=['🐟','🐠','🍚','🌽','🥜','🫙','🧴','🍞','🥚','🧅','🧄','🍅','🥬','🍋','🍊','🫚','🧂','🍵','☕','🥤','🧃','🫒','🌿','🫛','🥩','🐓','🥦','🍯','🧇','🫙'];
+const EMOJIS=['🛍️','🐠','🍚','🌽','🥜','🫙','🧴','🍞','🥚','🧅','🧄','🍅','🥬','🍋','🍊','🫚','🧂','🍵','☕','🥤','🧃','🫒','🌿','🫛','🥩','🐓','🥦','🍯','🧇','🫙'];
 const EXP_ICONS={Transport:'🚗',Rent:'🏠',Stock:'📦',Utilities:'💡',Other:'💸'};
 
 // Fish: Fresh price = size × 50, Fried price = size × 50 + 50
@@ -104,7 +104,7 @@ var sales=[];
 var expenses=[];
 var debts=[];
 var cart=[];
-var selEmoji='🐟';
+var selEmoji='🛍️';
 var editId=null;
 var debtEditId=null;
 var activeCat='All';
@@ -845,8 +845,8 @@ function openTypeModal(id){
   const stockTxt=p.stock<=0?'Out of stock':p.stock+' in stock';
   const freshPrice=p.prices?p.prices.fresh:p.price;
   const friedPrice=p.prices?p.prices.fried:p.price;
-  const freshEmoji=dcat==='Fish'?'🐟':'🐠';
-  const freshLabel=dcat==='Fish'?'🐟 Fresh':'🐠 Fresh (Dried)';
+  const freshEmoji=dcat==='Fish'?'🛍️':'🐠';
+  const freshLabel=dcat==='Fish'?'🛍️ Fresh':'🐠 Fresh (Dried)';
   function optBtn(label,emoji,prepType,price){
     const dis=!inStock;
     return`<button class="type-opt-btn${dis?' type-opt-disabled':''}"${dis?' disabled':''} onclick="addToCartWithPrep(${id},'${prepType}');closeTypeModal();renderSales()">
@@ -2109,7 +2109,8 @@ renderDashboard();
 // Apply role access on init (default role = staff until PIN entered)
 applyRoleAccess();
 
-// Splash screen — dismiss after 2.5s, then hand off to staff.js entry screen logic
+// Splash screen — bars drop 0.15–2.0s, letters reveal 0.5–2.0s,
+// progress bar runs 2.7s→6.7s (4s fill), splash hides at 7.0s
 setTimeout(()=>{
   const splash=document.getElementById('splash');
   if(splash){
@@ -2130,7 +2131,7 @@ setTimeout(()=>{
       }
     },600);
   }
-},2500);
+},7000);
 // ── Donate modal ──────────────────────────────────────────────
 function openDonateModal(){
   // Always pull from single config source — never hardcoded in HTML

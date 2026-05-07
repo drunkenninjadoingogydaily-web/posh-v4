@@ -126,40 +126,130 @@ input,select,textarea{font-family:var(--font)}
 /* ══════════════════════════════════
    5. SPLASH SCREEN
    ══════════════════════════════════ */
+/* ══════════════════════════════════
+   SPLASH — Reveal Loader
+   Uses --splash-* vars set by theme-boot <script> in index.html
+   so the correct colours appear before styles.css paints.
+   ══════════════════════════════════ */
+
 #splash{
-  position:fixed;inset:0;background:var(--acc);z-index:1000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:fixed;inset:0;z-index:1000;
+  background:var(--splash-bg, #EEF4FC);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
   max-width:430px;margin:0 auto;
 }
-#splash.hide{animation:splashOut .6s ease forwards}
-@keyframes splashOut{to{opacity:0;transform:scale(1.05);pointer-events:none}}
-.splash-ring{
-  width:96px;height:96px;border-radius:28px;background:rgba(0,0,0,.12);
-  display:flex;align-items:center;justify-content:center;margin-bottom:28px;
-  animation:ringPop .5s .2s cubic-bezier(.34,1.56,.64,1) both;
+#splash.hide{animation:splashOut .55s ease forwards}
+@keyframes splashOut{to{opacity:0;transform:scale(1.04);pointer-events:none}}
+
+/* ── Background layers ─────────── */
+/* decorative layers hidden — plain background only */
+.spl-bg-radials,.spl-grid,.spl-vignette,.spl-particle{display:none}
+
+/* ── Wrapper ───────────────────── */
+.spl-wrapper{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;
+  margin-top:-20px;
 }
-@keyframes ringPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-.splash-letters{display:flex;gap:0;margin-bottom:14px}
-.splash-letter{
-  font-size:54px;font-weight:900;color:var(--acc-text);letter-spacing:-2px;
-  opacity:0;transform:translateY(30px);animation:letterRise .4s ease forwards;
+
+/* ── Logo row ──────────────────── */
+.spl-logo{
+  display:flex;gap:14px;align-items:flex-end;
+  animation:splLogoPulse 1.1s 2.55s ease both;
 }
-.splash-letter:nth-child(1){animation-delay:.4s}
-.splash-letter:nth-child(2){animation-delay:.55s}
-.splash-letter:nth-child(3){animation-delay:.7s;opacity:0;filter:brightness(1.3)}
-.splash-letter:nth-child(4){animation-delay:.85s}
-@keyframes letterRise{to{opacity:1;transform:translateY(0)}}
-.splash-tag{
-  font-size:12px;font-weight:500;color:rgba(0,0,0,.6);letter-spacing:2px;
-  text-transform:uppercase;opacity:0;animation:fadeSlide .5s 1.1s ease forwards;
+@keyframes splLogoPulse{
+  0%  {filter:brightness(1)}
+  45% {filter:brightness(1.18) drop-shadow(0 0 20px var(--splash-acc,#FFB800))}
+  100%{filter:brightness(1)}
 }
-.splash-bar-bg{
-  width:140px;height:3px;background:rgba(0,0,0,.15);border-radius:2px;
-  margin-top:36px;overflow:hidden;opacity:0;animation:fadeSlide .4s 1.3s ease forwards;
+
+/* ── Each letter slot ──────────── */
+.spl-slot{
+  position:relative;width:62px;height:104px;overflow:hidden;
+  display:flex;align-items:flex-end;justify-content:center;
 }
-.splash-bar-fill{height:100%;background:rgba(0,0,0,.4);border-radius:2px;animation:barFill 2.8s 1.4s ease forwards}
-@keyframes barFill{0%{width:0}60%{width:70%}85%{width:88%}100%{width:100%}}
-@keyframes fadeSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Letter */
+.spl-letter{
+  position:relative;z-index:2;
+  font-size:72px;font-weight:900;line-height:1;
+  color:var(--splash-text,#F1F5F9);
+  opacity:0;transform:translateY(12px);
+  animation:splLetterReveal .4s cubic-bezier(.22,1,.36,1) forwards;
+  text-shadow:0 0 32px var(--splash-acc,#FFB800),0 2px 8px rgba(0,0,0,.4);
+}
+.spl-accent .spl-letter{color:var(--splash-acc,#FFB800)}
+.spl-slot:nth-child(1) .spl-letter{animation-delay:.5s}
+.spl-slot:nth-child(2) .spl-letter{animation-delay:1.0s}
+.spl-slot:nth-child(3) .spl-letter{animation-delay:1.5s}
+.spl-slot:nth-child(4) .spl-letter{animation-delay:2.0s}
+@keyframes splLetterReveal{to{opacity:1;transform:translateY(0)}}
+
+/* Falling bar */
+.spl-bar{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:44px;height:88px;border-radius:16px;
+  background:linear-gradient(170deg,var(--splash-bar-from,#FFD54A),var(--splash-bar-to,#FFB800));
+  box-shadow:0 0 28px var(--splash-bar-shadow,rgba(255,184,0,.38)),0 14px 32px rgba(0,0,0,.25);
+  animation:splBarDrop .95s cubic-bezier(.55,.05,.67,.19) forwards;
+}
+.spl-bar::after{
+  content:'';position:absolute;top:8px;left:30%;
+  width:30%;height:40%;border-radius:50%;
+  background:rgba(255,255,255,.2);filter:blur(4px);
+}
+.spl-slot:nth-child(1) .spl-bar{animation-delay:.15s}
+.spl-slot:nth-child(2) .spl-bar{animation-delay:.65s}
+.spl-slot:nth-child(3) .spl-bar{animation-delay:1.15s}
+.spl-slot:nth-child(4) .spl-bar{animation-delay:1.65s}
+@keyframes splBarDrop{
+  0%  {transform:translateX(-50%) translateY(0);opacity:1;filter:blur(0)}
+  60% {opacity:1}
+  100%{transform:translateX(-50%) translateY(180px);opacity:0;filter:blur(5px)}
+}
+
+/* ── Divider ───────────────────── */
+.spl-divider{display:none}
+
+/* ── Tagline ───────────────────── */
+.spl-tagline{
+  margin-top:12px;
+  font-size:10px;font-weight:600;letter-spacing:5px;text-transform:uppercase;
+  color:var(--splash-tag,#8EA0BC);
+  opacity:0;animation:splFadeUp .5s 2.1s ease forwards;
+}
+
+/* ── Progress ──────────────────── */
+.spl-progress-wrap{
+  margin-top:26px;width:200px;
+  opacity:0;animation:splFadeUp .4s 2.2s ease forwards;
+}
+.spl-progress-track{
+  width:100%;height:3px;background:rgba(128,128,128,.15);border-radius:99px;overflow:hidden;
+}
+.spl-progress-fill{
+  height:100%;width:0%;border-radius:99px;
+  background:linear-gradient(90deg,var(--splash-acc,#FFB800),var(--splash-bar-from,#FFD54A));
+  box-shadow:0 0 10px var(--splash-bar-shadow,rgba(255,184,0,.38));
+  animation:splFillBar 4s 2.3s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes splFillBar{to{width:100%}}
+
+/* ── Status ────────────────────── */
+.spl-status{
+  margin-top:10px;font-size:10px;letter-spacing:3.5px;font-weight:500;
+  color:var(--splash-acc,#FFB800);
+  opacity:0;
+  animation:splFadeUp .5s 2.2s ease forwards, splBlink 1.3s 2.5s ease infinite;
+}
+@keyframes splBlink{50%{opacity:.4}}
+@keyframes splFadeUp{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+
 
 /* ══════════════════════════════════
    6. PIN SCREEN
@@ -304,6 +394,7 @@ input,select,textarea{font-family:var(--font)}
   width:44px;height:44px;background:var(--acc);border-radius:13px;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
+.sb-notif-badge{font-size: small;width: 50px;height: 23px;background: var(--surf2);padding: 5px 9px;text-align: center;justify-content: center;display: flex;flex-wrap: wrap;}
 .sb-brand{font-size:18px;font-weight:900;letter-spacing:-.5px;color:var(--text)}
 .sb-brand span{color:var(--acc)}
 .sb-tag{font-size:10px;color:var(--muted);font-weight:500}
@@ -1098,29 +1189,6 @@ input,select,textarea{font-family:var(--font)}
 .obsidian-prev{background:linear-gradient(135deg,#0C0C0E,#AAFF00)}
 
 /* ── Splash screen ── */
-/* HTML uses splash-logo-ring, CSS had splash-ring */
-.splash-logo-ring{
-  width:96px;height:96px;border-radius:28px;background:rgba(0,0,0,.12);
-  display:flex;align-items:center;justify-content:center;margin-bottom:28px;
-  animation:ringPop .5s .2s cubic-bezier(.34,1.56,.64,1) both;
-}
-
-/* HTML uses splash-tagline, CSS had splash-tag */
-.splash-tagline{
-  font-size:12px;font-weight:500;color:rgba(0,0,0,.6);letter-spacing:2px;
-  text-transform:uppercase;opacity:0;animation:fadeSlide .5s 1.1s ease forwards;
-}
-
-/* HTML uses splash-dots / splash-dot — no rule existed */
-.splash-dots{display:flex;gap:7px;margin-top:20px}
-.splash-dot{
-  width:7px;height:7px;border-radius:50%;background:rgba(0,0,0,.25);
-  animation:dotPulse 1.4s ease-in-out infinite;
-}
-.splash-dot:nth-child(2){animation-delay:.2s}
-.splash-dot:nth-child(3){animation-delay:.4s}
-@keyframes dotPulse{0%,80%,100%{transform:scale(.8);opacity:.5}40%{transform:scale(1.2);opacity:1}}
-
 /* ── Pin reset modal ── */
 /* HTML uses modal-card inside pin-reset-modal, CSS had pin-reset-card */
 .modal-card{background:var(--surf);border-radius:22px;padding:24px;width:100%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
