@@ -213,8 +213,9 @@
              a.pin === pin;
     });
     if (match) { _unlockAsStaff(match.name, shopCode); return; }
-    // Fallback: global staffPin (backward compat / owner didn't add staff yet)
-    if (pin === window.staffPin) { _unlockAsStaff(name, shopCode); return; }
+    // Fallback: global staffPin — only allowed when owner hasn't set up named accounts yet.
+    // BUG FIX: previously any name + global PIN was accepted, allowing impersonation.
+    if (accounts.length === 0 && pin === window.staffPin) { _unlockAsStaff(name, shopCode); return; }
     // Fail
     const errEl = $('sl-error');
     if (errEl) {

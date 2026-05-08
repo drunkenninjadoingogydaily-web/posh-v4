@@ -574,7 +574,13 @@ window.updateSplitTotal = updateSplitBalance;
     }
     const origPush = sales.push.bind(sales);
     const patchedPush = (sale)=>{
-      if(vatEnabled && vatRate > 0){ sale.vatRate = vatRate; sale.vatAmount = calcVAT(cartSubtotal()); }
+      if(vatEnabled && vatRate > 0){
+        // BUG FIX: VAT must be applied to after-discount subtotal, not raw subtotal
+        const _sub = cartSubtotal();
+        const _disc = _cartDiscount ? calcDiscountAmount(_sub, _cartDiscount) : 0;
+        sale.vatRate = vatRate;
+        sale.vatAmount = calcVAT(_sub - _disc);
+      }
       if(payment === 'Split' && splitPayments.length){ sale.splitPayments = [...splitPayments]; }
       if(_cartDiscount){ sale.discount = {..._cartDiscount}; }
       origPush(sale);
@@ -582,12 +588,17 @@ window.updateSplitTotal = updateSplitBalance;
     };
     const realPush = sales.push;
     sales.push = function(s){ patchedPush(s); };
-    _orig && _orig();
-    sales.push = realPush;
-    splitPayments = [];
-    _cartDiscount = null;
-    const sec = $id('split-payment-section');
-    if(sec) sec.style.display = 'none';
+    try {
+      _orig && _orig();
+    } finally {
+      // BUG FIX: always restore sales.push even if _orig throws, to prevent
+      // the VAT/discount injector from permanently patching future sales
+      sales.push = realPush;
+      splitPayments = [];
+      _cartDiscount = null;
+      const sec = $id('split-payment-section');
+      if(sec) sec.style.display = 'none';
+    }
     // low-stock notification
     setTimeout(checkLowStockNotification, 500);
   };
@@ -621,8 +632,11 @@ function renderHeatmap(matrix){
 function buildProfitabilityData(salesList){
   const map = {};
   salesList.forEach(s=>s.items.forEach(item=>{
-    const prod = (typeof products !== 'undefined' ? products : []).find(p=>p.id===item.id);
-    if(!map[item.id]) map[item.id] = {name:item.name, emoji:item.emoji||'📦', qty:0, rev:0, cost:prod?.cost||0};
+    // BUG FIX: use cost captured at sale time, not live product cost.
+    // Live cost breaks when products are deleted (cost=0) or price-edited retroactively.
+    const saleCost = (item.unitCost != null) ? item.unitCost
+                   : (item.cost    != null) ? item.cost : 0;
+    if(!map[item.id]) map[item.id] = {name:item.name, emoji:item.emoji||'📦', qty:0, rev:0, cost:saleCost};
     map[item.id].qty += item.qty;
     map[item.id].rev += item.price * item.qty;
   }));
@@ -1606,7 +1620,7 @@ console.log('POSH Quick Wins loaded ✅ — 17 features active (biometric, audit
 // ─── 1. Extend switchTab to include 'crm' and 'staff' screens ───
 (function patchSwitchTab(){
   const _orig = window.switchTab;
-  const allTabsExtended = ['home','sales','stock','reports','history','debts','settings','crm','staff'];
+  const allTabsExtended = ['home','sales','stock','reports','history','debts','settings','crm','staff','care']; // BUG FIX: 'care' was missing — screen-care never got .active
   window.switchTab = function(tab){
     // Staff can access crm (customer lookup), but not stock/reports/history/settings/staff
     if(window.currentRole === 'staff' && ['stock','reports','history','settings','staff'].includes(tab)){
@@ -1623,6 +1637,7 @@ console.log('POSH Quick Wins loaded ✅ — 17 features active (biometric, audit
     // Trigger renders for new tabs
     if(tab === 'crm')   renderCRM();
     if(tab === 'staff') renderStaffList();
+    if(tab === 'care' && typeof refreshCareTab === 'function') refreshCareTab(); // BUG FIX: care tab was never activated
     // Delegate everything else to original
     if(['home','sales','stock','reports','history','debts','settings'].includes(tab)){
       // Re-call original logic without repeating the DOM work

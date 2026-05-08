@@ -188,6 +188,7 @@ window.cloudLoad = function(callback) {
 // Listens for changes from other devices in real time
 var _cloudListenerUnsub = null;
 var _cloudListenerActive = false; // BUG FIX #5: guard against duplicate concurrent listeners
+var _listenerGen = 0; // BUG FIX: generation counter to invalidate stale listeners after restart
 
 window.startCloudListener = function() {
   if (!_isOnline) return;
@@ -199,8 +200,11 @@ window.startCloudListener = function() {
   // Unsubscribe any stale listener before creating a new one
   if (_cloudListenerUnsub) { try { _cloudListenerUnsub(); } catch(e) {} _cloudListenerUnsub = null; }
   _cloudListenerActive = true;
+  var myGen = ++_listenerGen; // capture generation — stale callbacks will not match
   var clientId = getClientId();
   _cloudListenerUnsub = onSnapshot(doc(db, 'shops', clientId), function(snap) {
+    // BUG FIX: if listener was restarted, discard updates from the old instance
+    if (myGen !== _listenerGen) return;
     if (!snap.exists()) return;
     var cloudData = snap.data();
     // Only update if the change came from another device

@@ -64,7 +64,24 @@ function validateForm() {
 async function handleSubmit(e) {
     e.preventDefault();
 
+    // HONEYPOT SPAM CHECK
+    const website = document.getElementById('website');
+
+    if (website && website.value.trim() !== '') {
+        return;
+    }
+
+    // RATE LIMIT (1 minute)
+    const lastSent = localStorage.getItem("lastSent");
+
+    if (lastSent && Date.now() - lastSent < 60000) {
+        showToast("Wait 1 minute before sending again", "error");
+        return;
+    }
+
     if (!validateForm()) return;
+
+    localStorage.setItem("lastSent", Date.now());
 
     const btn     = document.getElementById('submitBtn');
     const btnText = document.getElementById('btnText');

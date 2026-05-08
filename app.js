@@ -1300,7 +1300,7 @@ function shareReceiptWhatsApp(){
   const msg=`🧾 *${shopName} Receipt*\n📅 ${dt}\n\n${lines}\n\n*TOTAL: ${fmt(total)}*\n\nAsante sana! Thank you 🙏`;
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
-function repeatLastSale(){if(!sales.length){toast('No previous sale!');return;}const last=sales[sales.length-1];last.items.forEach(i=>{var p=products.find(x=>x.id===i.id);if(p&&p.stock>0)addToCart(i.id);});toast('🔁 Last sale added!');switchTab('sales');}
+function repeatLastSale(){if(!sales.length){toast('No previous sale!');return;}const last=sales[sales.length-1];last.items.forEach(i=>{var p=products.find(x=>x.id===i.id);if(!p||p.stock<=0)return;if(i.preparation_type){addToCartWithPrep(i.id,i.preparation_type);}else{addToCart(i.id);}});toast('🔁 Last sale added!');switchTab('sales');}
 
 // ═════════════════════════════════════
 //  INVENTORY
@@ -1837,7 +1837,9 @@ function backupData(){
   const blob=new Blob([data],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
   a.href=url;a.download=`posh-backup-${new Date().toISOString().slice(0,10)}.json`;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);toast('💾 Backup downloaded!');
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),10000); // BUG FIX: revoke to prevent memory leak
+  toast('💾 Backup downloaded!');
 }
 function restoreData(event){
   const file=event.target.files[0];if(!file)return;
@@ -1859,7 +1861,9 @@ function exportCSV(){
   const csv=rows.map(r=>r.join(',')).join('\n');
   const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');
   a.href=url;a.download=`posh-sales-${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);toast('📤 CSV exported!');
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),10000); // BUG FIX: revoke to prevent memory leak
+  toast('📤 CSV exported!');
 }
 
 function exportPDF(){
