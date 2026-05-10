@@ -220,8 +220,16 @@ window.startCloudListener = function() {
       if (cloudData.expenses) window.expenses = cloudData.expenses;
       if (cloudData.debts) window.debts = cloudData.debts;
       localStorage.setItem('posh_data', JSON.stringify(cloudData));
-      // Refresh the current screen
-      if (typeof renderDashboard === 'function') renderDashboard();
+      // BUG FIX: only refresh UI if app is actually visible (not PIN screen)
+      // BUG FIX: also guard against entry-screen being visible — a cloud update
+      // should never trigger a dashboard render while the user is on the login/
+      // entry screen, as it would flash the app UI behind the screen overlay.
+      var _appEl = document.getElementById('app');
+      var _entryEl = document.getElementById('entry-screen');
+      var _pinEl = document.getElementById('pin-screen');
+      var _entryVisible = _entryEl && _entryEl.style.display !== 'none';
+      var _pinVisible = _pinEl && _pinEl.style.display !== 'none';
+      if (_appEl && _appEl.style.display !== 'none' && !_entryVisible && !_pinVisible && typeof renderDashboard === 'function') renderDashboard();
       showSyncStatus('synced');
     }
   }, function(err) {

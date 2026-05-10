@@ -1,10 +1,11 @@
 // BUG FIX #14: separate VERSION constant so you only edit one number per deploy
 // ← bump this on every production release to force cache invalidation
-var VERSION = '6';
+var VERSION = '7';
 var CACHE = 'posh-v' + VERSION;
 var ASSETS = [
   '/',
   '/index.html',
+  '/help.html',
   '/styles.css',
   '/app.js',
   '/posh-utils.js',

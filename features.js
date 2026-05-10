@@ -122,7 +122,7 @@
           `<div style="display:flex;justify-content:space-between;padding:4px 0;
                        border-bottom:1px solid var(--brd)">
             <span>${_esc(i.name)} ×${i.qty}</span>
-            <span style="font-weight:700">${_fmt(i.price * i.qty)}</span>
+            <span style="font-weight:700">${_fmt(i.prodType === 'bulk' ? i.price : i.price * i.qty)}</span>
           </div>`
         ).join('')}
         <div style="display:flex;justify-content:space-between;padding:7px 0 0;
@@ -702,7 +702,7 @@
       (s.items || []).forEach(i => {
         if (!prodMap[i.id]) prodMap[i.id] = { name: i.name, emoji: i.emoji || '📦', qty: 0, rev: 0 };
         prodMap[i.id].qty += i.qty;
-        prodMap[i.id].rev += i.price * i.qty;
+        prodMap[i.id].rev += (i.prodType === 'bulk' ? i.price : i.price * i.qty);
       })
     );
     const topProds = Object.values(prodMap).sort((a,b) => b.rev - a.rev).slice(0, 5);

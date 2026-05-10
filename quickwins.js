@@ -142,11 +142,13 @@ function startLockoutCountdown(){
   var lockUntil = parseInt(stored, 10);
   if (Date.now() < lockUntil) {
     pinLockedUntil = lockUntil;
-    // Wait for DOM to be ready
-    document.addEventListener('DOMContentLoaded', function() {
-      showLockout();
-      startLockoutCountdown();
-    });
+    // BUG FIX: use a safe ready-check that works whether DOMContentLoaded has already fired or not
+    function _applyLockout() { showLockout(); startLockoutCountdown(); }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', _applyLockout, { once: true });
+    } else {
+      _applyLockout();
+    }
   } else {
     localStorage.removeItem('posh_pinLock'); // expired — clean up
   }
@@ -636,9 +638,11 @@ function buildProfitabilityData(salesList){
     // Live cost breaks when products are deleted (cost=0) or price-edited retroactively.
     const saleCost = (item.unitCost != null) ? item.unitCost
                    : (item.cost    != null) ? item.cost : 0;
-    if(!map[item.id]) map[item.id] = {name:item.name, emoji:item.emoji||'📦', qty:0, rev:0, cost:saleCost};
+    if(!map[item.id]) map[item.id] = {name:item.name, emoji:item.emoji||'📦', qty:0, rev:0, cost:saleCost, isBulk: item.prodType==='bulk'};
     map[item.id].qty += item.qty;
-    map[item.id].rev += item.price * item.qty;
+    // BUG FIX: for bulk items, item.price is already the total (qty × pricePerUnit).
+    // Multiplying by item.qty again would double-count the revenue.
+    map[item.id].rev += (item.prodType === 'bulk' ? item.price : item.price * item.qty);
   }));
   return Object.values(map).map(r=>{
     const totalCost = r.cost * r.qty;
@@ -1349,7 +1353,7 @@ window.openReturnModal       = ()=>_openModal('return-modal','return-ov');
 window.closeReturnModal      = ()=>_closeModal('return-modal','return-ov');
 window.openPurchaseOrderModal= ()=>_openModal('po-modal','po-ov');
 window.closePurchaseOrderModal=()=>_closeModal('po-modal','po-ov');
-window.openStaffModal        = ()=>_openModal('staff-modal','staff-ov');
+window.openStaffModal        = function(arg){ if(typeof window.openStaffAccounts === 'function' && window.openStaffAccounts !== window.openStaffModal){ window.openStaffAccounts(); } else { _openModal('staff-modal','staff-ov'); } };
 window.closeStaffModal       = ()=>_closeModal('staff-modal','staff-ov');
 window.openLoyaltyModal      = ()=>_openModal('loyalty-modal','loyalty-ov');
 window.closeLoyaltyModal     = ()=>_closeModal('loyalty-modal','loyalty-ov');
@@ -1820,6 +1824,7 @@ window.saveCustomer = function(){
   const email = ($id('cm-email') || {}).value?.trim() || '';
   const notes = ($id('cm-notes') || {}).value?.trim() || '';
   if(!name){ toast('⚠️ Customer name required'); return; }
+  const _wasCrmEdit = !!window._crmEditId;
   if(window._crmEditId){
     const c = _customers.find(x=>x.id===window._crmEditId);
     if(c) Object.assign(c, {name,phone,email,notes,updatedAt:Date.now()});
@@ -1827,9 +1832,10 @@ window.saveCustomer = function(){
     _customers.push({id:Date.now(), name, phone, email, notes, createdAt:Date.now(), purchases:0, totalSpent:0, points:0});
   }
   localStorage.setItem('posh_customers', JSON.stringify(_customers));
+  window._crmEditId = null; // BUG FIX: reset so next "Add Customer" creates a new record
   closeCustomerModal();
   renderCRM();
-  addAuditEntry('CRM', (window._crmEditId?'Updated':'Added')+' customer: '+name);
+  addAuditEntry('CRM', (_wasCrmEdit?'Updated':'Added')+' customer: '+name);
   toast('✅ Customer saved');
 };
 
@@ -2069,6 +2075,8 @@ console.log('POSH Additional Patches loaded ✅ — CRM, Staff, Float, Tab routi
   function _doInit() {
     if (window._storageInitialized) return;
     if (typeof initStorageMode !== 'function') return;
+    // BUG FIX: set flag BEFORE calling initStorageMode so a re-entrant call
+    // (e.g. from the firebaseReady path in app.js) is correctly blocked.
     window._storageInitialized = true;
     initStorageMode();
   }

@@ -2340,5 +2340,11 @@
 <script src="features.js"></script>
 <script src="product-images.js"></script>
 <script src="image-sync.js"></script>
+<!-- EmailJS SDK (required by email.js for the in-app contact form) -->
+<!-- BUG FIX: email.js was in sw.js ASSETS and fully implemented, but neither the
+     EmailJS SDK nor email.js itself were loaded in index.html — the contact form
+     was silently broken on every page load. -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="email.js"></script>
 </body>
 </html>

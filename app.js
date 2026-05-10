@@ -240,7 +240,7 @@ function loadData(){
     if(d.sales)sales=d.sales;
     if(d.expenses)expenses=d.expenses;
     if(d.debts)debts=d.debts;
-    if(d.dailyGoal)dailyGoal=d.dailyGoal;
+    if(d.dailyGoal!=null && d.dailyGoal!=='')dailyGoal=d.dailyGoal;
     if(d.shopName)shopName=d.shopName;
     // Dual-pin support with legacy fallback
     if(d.adminPin)adminPin=d.adminPin;
@@ -248,12 +248,14 @@ function loadData(){
     else if(d.userPin)staffPin=d.userPin; // migrate old single pin
     if(typeof d.darkMode==='boolean'){darkMode=d.darkMode;}
     if(typeof d.idleMinutes==='number')idleMinutes=d.idleMinutes;
-    if(d.nextId)nextId=d.nextId;
-    if(d.nextDebtId)nextDebtId=d.nextDebtId;
+    if(d.nextId!=null)nextId=d.nextId;
+    if(d.nextDebtId!=null)nextDebtId=d.nextDebtId;
     if(d.staffAccounts)window.staffAccounts=d.staffAccounts;
     if(d.shopCode&&!localStorage.getItem('posh_shop_code'))localStorage.setItem('posh_shop_code',d.shopCode);
     if(darkMode){
-      document.documentElement.setAttribute('data-theme','dark');
+      // BUG FIX: do NOT set data-theme='dark' — CSS has no such theme; named themes
+      // (ocean, midnight…) are restored by the inline theme-boot script in index.html.
+      // Only update the toggle button and track to reflect the saved darkMode flag.
       const btn=document.getElementById('dark-toggle-btn');
       if(btn)btn.textContent='☀️';
       const track=document.getElementById('dm-track');
@@ -269,6 +271,8 @@ const fmt=n=>'KSh '+Number(n).toLocaleString();
 const fmtS=n=>n>=1000?(n/1000).toFixed(1)+'K':String(n);
 const nowDate=()=>new Date().toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'2-digit'});
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+// BUG FIX: HTML escape helper for product names/user data in innerHTML contexts
+function _esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function getDateKey(ts){var d=new Date(ts);return`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;}
 function todayKey(){return getDateKey(Date.now());}
 function yesterdayKey(){var d=new Date();d.setDate(d.getDate()-1);return getDateKey(d.getTime());}
@@ -564,7 +568,9 @@ function updateSidebar(){
 // ═════════════════════════════════════
 function toggleDark(){
   darkMode=!darkMode;saveData();
-  document.documentElement.setAttribute('data-theme',darkMode?'dark':'light');
+  // BUG FIX: do NOT call setAttribute('data-theme','dark'/'light') — CSS has no such themes.
+  // The visual theme (midnight, ocean, emerald…) is managed exclusively by setTheme() in quickwins.js.
+  // darkMode is a boolean preference persisted in localStorage; UI elements react via class toggles below.
   const btn=document.getElementById('dark-toggle-btn');if(btn)btn.textContent=darkMode?'☀️':'🌙';
   const dmSub=document.getElementById('dark-mode-sub');if(dmSub)dmSub.textContent='Currently: '+(darkMode?'Dark':'Light');
   const track=document.getElementById('dm-track');if(track)track.classList.toggle('on',darkMode);
@@ -982,7 +988,9 @@ function renderRecentList(td){
 // ═════════════════════════════════════
 function getCats(){const raw=[...new Set(products.map(p=>p.cat))];return['All',...new Set(raw.map(c=>getDisplayCat(c)))];}
 function renderCats(){
-  document.getElementById('cat-scroll').innerHTML=getCats().map(c=>`<div class="cat-chip${c===activeCat?' active':''}" onclick="activeCat='${c}';renderCats();renderSales()">${c}</div>`).join('');
+  // BUG FIX: store cats on window so onclick can reference by index (avoids quote injection)
+  window._poshCats = getCats();
+  document.getElementById('cat-scroll').innerHTML=window._poshCats.map((c,i)=>`<div class="cat-chip${c===activeCat?' active':''}" onclick="activeCat=window._poshCats[${i}];renderCats();renderSales()">${c}</div>`).join('');
 }
 function renderSales(){
   const q=(document.getElementById('sales-q').value||'').toLowerCase();
@@ -992,7 +1000,7 @@ function renderSales(){
   const favs=products.filter(p=>p.fav);
   const favArea=document.getElementById('fav-area');
   if(favs.length&&!q){
-    favArea.innerHTML=`<div class="fav-strip"><div class="fav-label">⭐ Favourites</div><div class="fav-row">${favs.map(p=>{const isPrepCat=PREP_CATS.has(getDisplayCat(p.cat));const click=isPrepCat?`openTypeModal(${p.id})`:`addToCart(${p.id})`;const minP=isPrepCat&&p.prices?Math.min(p.prices.fresh,p.prices.fried):p.price;return`<div class="fav-pill" onclick="${click}"><span>${p.name}</span><em>${fmt(minP)}</em></div>`;}).join('')}</div></div>`;
+    favArea.innerHTML=`<div class="fav-strip"><div class="fav-label">⭐ Favourites</div><div class="fav-row">${favs.map(p=>{const isPrepCat=PREP_CATS.has(getDisplayCat(p.cat));const click=isPrepCat?`openTypeModal(${p.id})`:`addToCart(${p.id})`;const minP=isPrepCat&&p.prices?Math.min(p.prices.fresh,p.prices.fried):p.price;return`<div class="fav-pill" onclick="${click}"><span>${_esc(p.name)}</span><em>${fmt(minP)}</em></div>`;}).join('')}</div></div>`;
   }else favArea.innerHTML='';
   if(!list.length){document.getElementById('products-grid').innerHTML='<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No products found</div></div></div>';return;}
   document.getElementById('products-grid').innerHTML=list.map(p=>{
@@ -1008,8 +1016,8 @@ function renderSales(){
         <span class="prod-fav${p.fav?' on':''}" onclick="event.stopPropagation();toggleFav(${p.id})">${p.fav?'★':'☆'}</span>
         <div class="prod-stock-b"><span class="badge ${sb}">${stxt}</span></div>
         <div class="prod-emoji-wrap"></div>
-        <div class="prod-name">${p.name}</div>
-        <div class="prod-unit">${p.unit}</div>
+        <div class="prod-name">${_esc(p.name)}</div>
+        <div class="prod-unit">${_esc(p.unit)}</div>
         <div class="prod-bottom"><span class="prod-price">from ${fmt(minPrice)}</span>${p.stock>0?`<div class="prod-add">${inCartQty||'+'}</div>`:''}</div>
       </div>`;
     }else{
@@ -1027,7 +1035,7 @@ function renderSales(){
         <span class="prod-fav${p.fav?' on':''}" onclick="event.stopPropagation();toggleFav(${p.id})">${p.fav?'★':'☆'}</span>
         <div class="prod-stock-b"><span class="badge ${sb}">${stxt}</span></div>
         <div class="prod-emoji-wrap"></div>
-        <div class="prod-name">${p.name}</div>
+        <div class="prod-name">${_esc(p.name)}</div>
         <div class="prod-unit">${isBulk?('per '+p.bulkUnit):p.unit}</div>
         <div class="prod-bottom"><span class="prod-price">${priceLabel}</span>${!outOfStock?`<div class="prod-add">${inCart?inCart.qty:'+'}</div>`:''}</div>
       </div>`;
@@ -1085,7 +1093,7 @@ function addToCart(id){
   const cid=String(id);
   const ex=cart.find(x=>x.cid===cid);
   if(ex){if(ex.qty>=p.stock){toast('⚠️ Max stock!');return;}ex.qty++;}
-  else cart.push({cid,id,name:p.name,price:p.price,cost:p.cost||0,emoji:p.emoji,qty:1,preparation_type:null,cat:getDisplayCat(p.cat)});
+  else cart.push({cid,id,name:p.name,price:p.price,cost:p.cost||0,unitCost:p.cost||0,emoji:p.emoji,qty:1,preparation_type:null,cat:getDisplayCat(p.cat)});
   updateCartFab();renderSales();toast(`✅ Added!`);
 }
 
@@ -1095,7 +1103,7 @@ function addToCartService(id){
   const cid=String(id);
   const ex=cart.find(x=>x.cid===cid);
   if(ex){ex.qty++;}
-  else cart.push({cid,id,name:p.name,price:p.price,cost:0,emoji:p.emoji,qty:1,cat:getDisplayCat(p.cat),prodType:'service'});
+  else cart.push({cid,id,name:p.name,price:p.price,cost:0,unitCost:0,emoji:p.emoji,qty:1,cat:getDisplayCat(p.cat),prodType:'service'});
   updateCartFab();renderSales();toast(`✅ ${p.name} added!`);
 }
 
@@ -1162,7 +1170,7 @@ function addToCartWithPrep(id,prepType){
   const cid=id+'_'+prepType;
   const ex=cart.find(x=>x.cid===cid);
   if(ex){if(ex.qty>=p.stock){toast('⚠️ Max stock!');return;}ex.qty++;}
-  else cart.push({cid,id,name:p.name,price,cost:p.cost||0,emoji:p.emoji,qty:1,preparation_type:prepType||null,cat:getDisplayCat(p.cat)});
+  else cart.push({cid,id,name:p.name,price,cost:p.cost||0,unitCost:p.cost||0,emoji:p.emoji,qty:1,preparation_type:prepType||null,cat:getDisplayCat(p.cat)});
   updateCartFab();renderSales();toast(`✅ ${prepType?prepType.charAt(0).toUpperCase()+prepType.slice(1)+' ':''} Added!`);
 }
 function removeFromCart(cid){cart=cart.filter(x=>x.cid!==cid);updateCartFab();renderSales();if(!cart.length)closeCart();}
@@ -1280,7 +1288,12 @@ function confirmSale(){
     p.stock=Math.max(0,Math.round((p.stock-ci.qty)*100)/100);
   });
   var saleTs=Date.now();
-  sales.push({id:saleTs,ts:saleTs,total,payment,note,items});
+  // BUG FIX: saleTs*1000 produces a ~16-digit number exceeding Number.MAX_SAFE_INTEGER
+  // (9007199254740991). Use a combined string-keyed numeric ID that stays safe:
+  // encode as saleTs (13 digits) concatenated with a zero-padded 3-digit sequence.
+  var _seq = (typeof window._saleSeq === 'number') ? (++window._saleSeq) : (window._saleSeq = 0);
+  var saleId = parseInt(String(saleTs) + String(_seq % 1000).padStart(3,'0'));
+  sales.push({id:saleId,ts:saleTs,total,payment,note,items});
   // auto-add to credit book if paid by Credit
   var custName='';
   if(payment==='Credit'){
@@ -1519,9 +1532,11 @@ function saveProduct(){
     const price=parseFloat(document.getElementById('pf-price').value)||0;
     if(!price){toast('⚠️ Price required');return;}
     const base={name,price,cost:0,stock:0,unit:'service',cat,lowAt,supplier,emoji:selEmoji,fav:false,prodType:'service'};
+    const wasEdit=!!editId;
     if(editId)Object.assign(products.find(x=>x.id===editId),base);
     else products.push({id:nextId++,...base});
-    closeProductForm();saveData();renderInv();toast(editId?'✅ Updated':'✅ Added');
+    editId=null; // BUG FIX: reset so next open of form creates a new product
+    closeProductForm();saveData();renderInv();toast(wasEdit?'✅ Updated':'✅ Added');
     return;
   }
 
@@ -1533,15 +1548,18 @@ function saveProduct(){
     const unit=document.getElementById('pf-unit').value.trim()||bulkUnit;
     if(!pricePerUnit){toast('⚠️ Price per unit required');return;}
     const base={name,pricePerUnit,price:pricePerUnit,cost,stock,unit,bulkUnit,cat,lowAt,supplier,emoji:selEmoji,fav:false,prodType:'bulk'};
+    const wasEdit=!!editId;
     if(editId)Object.assign(products.find(x=>x.id===editId),base);
     else products.push({id:nextId++,...base});
-    closeProductForm();saveData();renderInv();toast(editId?'✅ Updated':'✅ Added');
+    editId=null; // BUG FIX: reset so next open of form creates a new product
+    closeProductForm();saveData();renderInv();toast(wasEdit?'✅ Updated':'✅ Added');
     return;
   }
 
   // ── STANDARD (default) ────────────────────────────────────────
   const stock=parseInt(document.getElementById('pf-stock').value)||0;
   const unit=document.getElementById('pf-unit').value.trim()||'unit';
+  const wasEdit=!!editId;
   if(PREP_CATS.has(cat)){
     const freshPrice=parseFloat(document.getElementById('pf-price-fresh').value)||0;
     const friedPrice=parseFloat(document.getElementById('pf-price-fried').value)||0;
@@ -1557,7 +1575,8 @@ function saveProduct(){
     if(editId)Object.assign(products.find(x=>x.id===editId),base);
     else products.push({id:nextId++,...base,fav:false});
   }
-  closeProductForm();saveData();renderInv();toast(editId?'✅ Updated':'✅ Added');
+  editId=null; // BUG FIX: reset so next open of form creates a new product
+  closeProductForm();saveData();renderInv();toast(wasEdit?'✅ Updated':'✅ Added');
 }
 
 // ═════════════════════════════════════
@@ -1602,9 +1621,11 @@ function saveDebt(){
   if(!name){toast('⚠️ Customer name required');return;}
   if(amount<=0){toast('⚠️ Enter valid amount');return;}
   const status=paid>=amount?'paid':paid>0?'partial':'pending';
+  const _wasDebtEdit=!!debtEditId;
   if(debtEditId){Object.assign(debts.find(x=>x.id===debtEditId),{name,phone,amount,paid,payMethod,items,due,status});}
   else debts.push({id:nextDebtId++,name,phone,amount,paid,payMethod,items,status,ts:Date.now(),due});
-  closeDebtModal();saveData();renderDebts();toast(debtEditId?'✅ Updated':'✅ Credit recorded');
+  debtEditId=null; // BUG FIX: reset so next "Add Credit" creates a new record instead of overwriting this one
+  closeDebtModal();saveData();renderDebts();toast(_wasDebtEdit?'✅ Updated':'✅ Credit recorded');
 }
 function markDebtPaid(id){
   const d=debts.find(x=>x.id===id);if(!d)return;
@@ -2127,7 +2148,7 @@ function renderSparklines(){
     var dayDate=new Date();dayDate.setDate(dayDate.getDate()-(6-j));
     var dayStart=new Date(dayDate.getFullYear(),dayDate.getMonth(),dayDate.getDate()).getTime();
     var soldAfter=sales.filter(function(s){return s.ts>dayStart;})
-      .reduce(function(total,s){return total+s.items.reduce(function(t,i){return t+(getProdType({prodType:i.prodType})==='service'?0:(i.qty||0));},0);},0);
+      .reduce(function(total,s){return total+s.items.reduce(function(t,i){return t+((i.prodType==='service')?0:(i.qty||0));},0);},0);
     stockData.push(Math.max(0,currentTotalStock+soldAfter));
   }
   drawSparkline('spark-sales',revData,'#00A67E');
@@ -2167,10 +2188,27 @@ function attachSwipe(cid){
 // ═════════════════════════════════════
 //  📅 HISTORY DATE PICKER
 // ═════════════════════════════════════
+// BUG FIX: declared here (before renderHistory) so it is always initialised
+// when renderHistory() accesses it.  The old var declaration was 400+ lines
+// below renderHistory, which — while technically hoisted to undefined — meant
+// any code that ran before setHistDate() would treat the value as undefined
+// rather than null, breaking the truthiness check inside renderHistory.
 var histDateFilter=null;
 function setHistDate(val){
-  if(!val){histDateFilter=null;}
-  else{histDateFilter=val;}
+  histDateFilter=val||null;
+  // BUG FIX: clear the period-tab active state when a specific date is picked
+  // so the UI doesn't show both a tab and a date as simultaneously "active".
+  if(val){
+    ['today','week','month'].forEach(function(t){
+      var el=document.getElementById('htab-'+t);if(el)el.classList.remove('active');
+    });
+  } else {
+    // Restore the period-tab highlight when date filter is cleared
+    ['today','week','month'].forEach(function(t){
+      var el=document.getElementById('htab-'+t);
+      if(el)el.classList.toggle('active',t===histFilter);
+    });
+  }
   renderHistory();
 }
 
@@ -2283,6 +2321,9 @@ function _initCloudSync(){
   // In local mode we skip ALL Firebase calls — no upload, no download, no listener.
   var _storageMode = localStorage.getItem('posh_storage_mode') || 'local';
   if(_storageMode === 'local'){
+    // BUG FIX: mark as initialized even on early return so quickwins.js window.load
+    // handler doesn't race and call initStorageMode() a second time.
+    window._storageInitialized = true;
     console.log('[POSH] Local mode — skipping cloud sync');
     return; // loadData() was already called above; localStorage is the only source
   }

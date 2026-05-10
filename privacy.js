@@ -116,16 +116,20 @@ function _hideSyncBannerIfLocal() {
  * Observe future changes to #sync-banner by firebase.js and suppress them
  * whenever storage mode is 'local'.  Called once during init.
  */
+var _syncBannerObserver = null; // BUG FIX: track observer to avoid accumulation
 function _watchSyncBanner() {
   const sb = document.getElementById('sync-banner');
   if (!sb || typeof MutationObserver === 'undefined') return;
 
-  var observer = new MutationObserver(function () {
+  // BUG FIX: disconnect any previous observer before creating a new one
+  if (_syncBannerObserver) { try { _syncBannerObserver.disconnect(); } catch(e) {} }
+
+  _syncBannerObserver = new MutationObserver(function () {
     if (getStorageMode() === 'local') {
       sb.style.display = 'none';
     }
   });
-  observer.observe(sb, { attributes: true, childList: true, subtree: true, characterData: true });
+  _syncBannerObserver.observe(sb, { attributes: true, childList: true, subtree: true, characterData: true });
 }
 
 // ── SETTINGS RADIO SYNC ────────────────────────────────

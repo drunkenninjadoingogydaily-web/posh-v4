@@ -197,6 +197,15 @@ a:hover{text-decoration:underline}
 .footer-logo{font-size:22px;font-weight:900;color:var(--acc);letter-spacing:-1px;margin-bottom:5px}
 .footer-sub{font-size:11px;color:var(--muted)}
 
+/* MANUAL DOWNLOAD BUTTONS */
+.manual-dl-btn{background:var(--acc);color:var(--acc-text);border:none;border-radius:14px;padding:14px 18px;display:inline-flex;align-items:center;gap:12px;text-decoration:none;transition:all .18s;flex:1;min-width:140px;cursor:pointer}
+.manual-dl-btn:hover{opacity:.90;transform:translateY(-2px);text-decoration:none}
+.manual-dl-btn--outline{background:var(--surf);border:1.5px solid var(--acc);color:var(--acc)}
+.manual-dl-btn--outline:hover{background:var(--acc-l)}
+.manual-dl-icon{font-size:24px;flex-shrink:0}
+.manual-dl-label{font-size:13px;font-weight:800;color:inherit}
+.manual-dl-sub{font-size:10px;opacity:.75}
+
 /* DIVIDER */
 .divider{height:1px;background:var(--brd);margin:28px 0}
 
@@ -243,11 +252,13 @@ a:hover{text-decoration:underline}
   <!-- TOC -->
   <div class="toc">
     <a href="#getting-started" class="toc-link">🚀 Getting Started</a>
+    <a href="#manual" class="toc-link">📚️User Manual</a>
     <a href="#modules" class="toc-link">📱 Modules</a>
     <a href="#pos" class="toc-link">🛒 Making a Sale</a>
     <a href="#stock" class="toc-link">📦 Stock</a>
     <a href="#roles" class="toc-link">👥 Roles &amp; PINs</a>
     <a href="#cloud" class="toc-link">☁️ Cloud &amp; Data</a>
+    <a href="#manual" class="toc-link">📖 User Manual</a>
     <a href="#faqs" class="toc-link">❓ FAQs</a>
     <a href="#tips" class="toc-link">💡 Tips</a>
     <a href="#contact" class="toc-link">📞 Contact</a>
@@ -349,6 +360,50 @@ a:hover{text-decoration:underline}
     <div class="info-row"><div class="info-row-icon">📊</div><div class="info-row-text"><div class="info-row-label">Export Sales (CSV / Excel / PDF)</div><div class="info-row-val">Sidebar (☰) → <strong>Export to Excel</strong> or <strong>Export PDF Report</strong>. Also available from the Reports tab.</div></div></div>
   </div>
   <div class="alert-box warning"><span class="alert-icon">⚠️</span><span><strong>Important:</strong> In Local Mode, clearing your browser's site data will erase all POSH data. Back up regularly or switch to Cloud Mode.</span></div>
+
+  <div class="divider"></div>
+
+  <!-- USER MANUAL DOWNLOAD -->
+  <div id="manual" class="section-header">
+    <div class="section-icon" style="background:var(--blue-l)">📖</div>
+    <div><div class="section-title">User Manual</div><div class="section-sub">Complete PDF guide — all modules, tips, and troubleshooting</div></div>
+  </div>
+
+  <div class="info-card" style="margin-bottom:10px">
+    <div class="info-row">
+      <div class="info-row-icon">📄</div>
+      <div class="info-row-text">
+        <div class="info-row-label">POSH User Manual v4.0</div>
+        <div class="info-row-val">A comprehensive reference covering all 9 modules, step-by-step walkthroughs, role &amp; PIN management, Cloud Sync, pro tips, and a full troubleshooting FAQ. <strong>14 chapters · printable PDF.</strong></div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-row-icon">📦</div>
+      <div class="info-row-text">
+        <div class="info-row-label">What's Inside</div>
+        <div class="info-row-val">Getting Started · POS walkthrough · Stock &amp; Inventory · Reports &amp; Analytics · Credit Book · CRM · Roles &amp; PINs · Cloud Sync · Settings · Pro Tips · Troubleshooting</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+    <a href="POSH_User_Manual.pdf" download="POSH_User_Manual.pdf" class="manual-dl-btn" id="manualDownloadBtn">
+      <span class="manual-dl-icon">⬇️</span>
+      <div>
+        <div class="manual-dl-label">Download PDF Manual</div>
+        <div class="manual-dl-sub">Full guide · All chapters</div>
+      </div>
+    </a>
+    <a href="POSH_User_Manual.pdf" target="_blank" rel="noopener" class="manual-dl-btn manual-dl-btn--outline">
+      <span class="manual-dl-icon">👁️</span>
+      <div>
+        <div class="manual-dl-label">Open in Browser</div>
+        <div class="manual-dl-sub">Preview without downloading</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="alert-box info"><span class="alert-icon">💡</span><span>The manual opens with a full-colour cover, table of contents, and printable sections. Share it with your staff or print individual chapters for reference at the counter.</span></div>
 
   <div class="divider"></div>
 
@@ -460,7 +515,7 @@ a:hover{text-decoration:underline}
   </div>
 
 <!-- BYMEACOFFEE -->
- <div class="support-card">
+ <div class="support-card" id="donate">
   <div class="support-emoji">🥮☕</div>
 
   <div class="support-content">

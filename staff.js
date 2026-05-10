@@ -413,15 +413,20 @@
       window._posh_shopCode      = window.getShopCode();
       if (typeof _origSave === 'function') _origSave.apply(this, arguments);
       // Patch localStorage after save (app.js writes the blob; re-add our fields)
+      // BUG FIX: wrap in try-catch — secondary setItem can also throw QuotaExceededError
       try {
         const raw = localStorage.getItem('posh_data');
         if (raw) {
           const d = JSON.parse(raw);
           d.staffAccounts = window.staffAccounts || [];
           d.shopCode      = window.getShopCode();
-          localStorage.setItem('posh_data', JSON.stringify(d));
+          try {
+            localStorage.setItem('posh_data', JSON.stringify(d));
+          } catch (quotaErr) {
+            console.warn('[POSH Staff] localStorage quota exceeded on staff patch write', quotaErr);
+          }
         }
-      } catch (e) {}
+      } catch (e) { console.warn('[POSH Staff] saveData patch error', e); }
     };
 
     // ── loadData: restore staffAccounts + shopCode ─────

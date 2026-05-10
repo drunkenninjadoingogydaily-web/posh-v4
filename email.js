@@ -74,7 +74,7 @@ async function handleSubmit(e) {
     // RATE LIMIT (1 minute)
     const lastSent = localStorage.getItem("lastSent");
 
-    if (lastSent && Date.now() - lastSent < 60000) {
+    if (lastSent && Date.now() - parseInt(lastSent, 10) < 60000) {
         showToast("Wait 1 minute before sending again", "error");
         return;
     }

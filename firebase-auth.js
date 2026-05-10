@@ -31,13 +31,16 @@ function _boot () {
     window.poshOwnerUser = user || null;
 
     // If entry screen is open & owner panel is visible → advance
+    // BUG FIX: guard with _poshAuthAdvanced to prevent double-firing on page load
     const entryEl = document.getElementById('entry-screen');
     const ownerPanel = document.getElementById('entry-owner-auth');
     if (
       user &&
+      !window._poshAuthAdvanced &&
       entryEl  && entryEl.style.display  !== 'none' &&
       ownerPanel && ownerPanel.style.display !== 'none'
     ) {
+      window._poshAuthAdvanced = true;
       _handleOwnerSignIn(user);
     }
   });
@@ -89,6 +92,7 @@ function _boot () {
   window.ownerSignOut = async function () {
     await fbSignOut(auth).catch(() => {});
     window.poshOwnerUser = null;
+    window._poshAuthAdvanced = false; // BUG FIX: reset so re-login auto-advance works
     localStorage.removeItem('posh_role_choice');
     if (typeof lockApp         === 'function') lockApp();
     if (typeof showEntryScreen === 'function') showEntryScreen();

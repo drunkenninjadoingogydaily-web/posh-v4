@@ -662,4 +662,13 @@
 
   console.log('POSH Barcode Scanner ready ✅  (BarcodeDetector:', 'BarcodeDetector' in window, ')');
 
+  // BUG FIX: stop camera when the user switches away from this browser tab.
+  // Without this, the camera indicator light stays on and the device drains
+  // battery while the scanner is open in the background.
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && _stream) {
+      _stopCamera();
+    }
+  });
+
 })();
