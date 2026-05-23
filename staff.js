@@ -196,6 +196,11 @@
         if (data.dailyGoal) window.dailyGoal = data.dailyGoal;
         // Cache staff shop code so offline works next time
         localStorage.setItem('posh_staff_shop_code', code);
+        // FIX: also write posh_shop_code — firebase.js getClientId() reads THIS key
+        // to determine which Firestore document to sync to.  Without it, staff sales
+        // fall back to window.shopName and land in the wrong document, making them
+        // invisible to the owner on Phone A.
+        localStorage.setItem('posh_shop_code', code);
         localStorage.setItem('posh_onboarded', 'true');
         // Cache the full shop data for offline
         try { localStorage.setItem('posh_data', JSON.stringify(Object.assign({}, data, { shopCode: code }))); } catch (e) {}
@@ -235,15 +240,13 @@
     localStorage.setItem('posh_role_choice',     'staff');
     if (shopCode) localStorage.setItem('posh_staff_shop_code', shopCode);
 
-    // BUG FIX: only set cloud mode if the owner hasn't explicitly chosen local mode.
-    // The old code unconditionally set 'cloud', silently overriding the owner's
-    // decision on shared or air-gapped devices.  Staff devices that have never had
-    // a mode set default to 'cloud' (they need to sync), but an existing 'local'
-    // preference is respected.
-    var _existingMode = localStorage.getItem('posh_storage_mode');
-    if (!_existingMode || _existingMode === '') {
-      localStorage.setItem('posh_storage_mode', 'cloud');
-    }
+    // FIX: staff devices joining a shop MUST sync to cloud — that is the entire
+    // point of the shop-code flow.  A pre-existing 'local' setting (e.g. the
+    // device was previously used as an owner device in local mode, or the app
+    // defaulted to 'local' on first load) would silently block cloudSync() in
+    // saveData(), so staff sales never reach Firestore and the owner on Phone A
+    // never sees them.  Force 'cloud' unconditionally here.
+    localStorage.setItem('posh_storage_mode', 'cloud');
     if (localStorage.getItem('posh_storage_mode') === 'cloud') {
       if (typeof startCloudListener === 'function') {
         startCloudListener();

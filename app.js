@@ -197,7 +197,8 @@ function saveData(){
   // BUG FIX: only call cloudSync when storage mode is 'cloud'.
   // Previously cloudSync() fired on every save regardless of mode, so shops
   // that chose local-only storage were silently uploading data to Firestore.
-  var _mode = localStorage.getItem('posh_storage_mode') || 'local';
+  // DEFAULT: cloud — new devices sync automatically unless explicitly switched to local
+  var _mode = localStorage.getItem('posh_storage_mode') || 'cloud';
   if(_mode === 'cloud' && typeof cloudSync === 'function') cloudSync();
 }
 function loadData(){
@@ -2428,12 +2429,30 @@ function _initCloudSync(){
     window._storageInitialized = true;
     initStorageMode();
   }
-  // BUG FIX #4: default must match privacy.js ('local', not 'cloud').
-  // Conflicting defaults caused cloud sync to fire unexpectedly on fresh installs.
+  // ── One-time migration: upgrade existing 'local' devices to 'cloud' ──────
+  // Devices that opened POSH before this update have posh_storage_mode='local'
+  // hardcoded in their localStorage, so the || 'cloud' fallback never fires for
+  // them.  We detect this with a migration flag (posh_mode_migrated_v1).  If the
+  // flag is absent the device has never been migrated: force it to 'cloud' once,
+  // set the flag, and continue into cloud-sync startup as normal.
+  // After this runs once the user can still switch back to local via Settings.
+  if(
+    localStorage.getItem('posh_storage_mode') === 'local' &&
+    !localStorage.getItem('posh_mode_migrated_v1')
+  ){
+    console.log('[POSH] Migration v1: upgrading device from local → cloud mode');
+    localStorage.setItem('posh_storage_mode', 'cloud');
+    localStorage.setItem('posh_mode_migrated_v1', '1');
+    // Refresh the Settings radios + banner so the UI reflects the new mode
+    if(typeof _syncSettingsRadios  === 'function') _syncSettingsRadios();
+    if(typeof showStorageModeBanner=== 'function') showStorageModeBanner();
+  }
+
+  // DEFAULT: cloud — new installs sync automatically.  Only skip if explicitly set to 'local'.
   // ── Storage Mode check ──────────────────────────────
-  // privacy.js sets posh_storage_mode = 'local' | 'cloud' (default: 'local').
+  // privacy.js sets posh_storage_mode = 'local' | 'cloud' (default: 'cloud').
   // In local mode we skip ALL Firebase calls — no upload, no download, no listener.
-  var _storageMode = localStorage.getItem('posh_storage_mode') || 'local';
+  var _storageMode = localStorage.getItem('posh_storage_mode') || 'cloud';
   if(_storageMode === 'local'){
     // BUG FIX: mark as initialized even on early return so quickwins.js window.load
     // handler doesn't race and call initStorageMode() a second time.
