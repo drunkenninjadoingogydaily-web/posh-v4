@@ -194,7 +194,11 @@ function saveData(){
     }
     console.warn('Save failed',e);
   }
-  if(typeof cloudSync==='function') cloudSync();
+  // BUG FIX: only call cloudSync when storage mode is 'cloud'.
+  // Previously cloudSync() fired on every save regardless of mode, so shops
+  // that chose local-only storage were silently uploading data to Firestore.
+  var _mode = localStorage.getItem('posh_storage_mode') || 'local';
+  if(_mode === 'cloud' && typeof cloudSync === 'function') cloudSync();
 }
 function loadData(){
   try{
@@ -813,7 +817,8 @@ function applyRoleAccess(){
   var navStaff=document.getElementById('nav-staff');
   if(navStaff)navStaff.style.display=isAdmin?'flex':'none';
   // Sidebar admin-only items
-  ['sb-settings-item','sb-backup-item','sb-report-item','sb-adminpin-item','sb-staffpin-item'].forEach(id=>{
+  // BUG FIX: also hide sb-shopcode-item — staff should not be able to share/copy the shop code
+  ['sb-settings-item','sb-backup-item','sb-report-item','sb-adminpin-item','sb-staffpin-item','sb-shopcode-item'].forEach(id=>{
     var el=document.getElementById(id);
     if(el)el.style.display=isAdmin?'flex':'none';
   });
@@ -952,8 +957,8 @@ function renderInsights(td,low,out,rev,yRev,unpaid){
   const insights=[];
   if(out>0)insights.push({t:'red',i:'❌',msg:`${out} product${out>1?'s':''} out of stock!`});
   if(low>0)insights.push({t:'amber',i:'⚠️',msg:`${low} item${low>1?'s':''} running low on stock.`});
-  // restock reminders
-  const needRestock=products.filter(p=>p.stock<=p.lowAt&&p.supplier);
+  // restock reminders (only show for products with a supplier and stock > 0 to avoid noise)
+  const needRestock=products.filter(p=>p.stock>0&&p.stock<=p.lowAt&&p.supplier);
   needRestock.forEach(p=>insights.push({t:'orange',i:'🔔',msg:`Restock alert: ${p.name} (${p.stock} left) — Supplier: ${p.supplier}`}));
   // today vs yesterday
   if(yRev>0){
@@ -1182,6 +1187,13 @@ function changeQty(cid,d){
   // Max qty is the shared fresh stock (regardless of prep type)
   const totalInCart=cart.filter(x=>x.id===item.id&&x.cid!==cid).reduce((s,x)=>s+x.qty,0);
   if(prod&&item.qty+totalInCart>prod.stock){item.qty=Math.max(1,prod.stock-totalInCart);toast('Max stock!');}
+  // BUG FIX: bulk items store price as a pre-computed total (qty × pricePerUnit).
+  // After a qty change the total must be recalculated, otherwise cartTotal() and
+  // the receipt will show the price from when the item was first added.
+  if(item.prodType==='bulk'&&prod&&prod.pricePerUnit){
+    item.price=Math.round(item.qty*prod.pricePerUnit);
+    item.cost =Math.round(item.qty*(prod.cost||0));
+  }
   renderCartSheet();updateCartFab();renderSales();
 }
 function clearCart(){cart=[];updateCartFab();renderSales();closeCart();}
@@ -1292,7 +1304,10 @@ function confirmSale(){
   // (9007199254740991). Use a combined string-keyed numeric ID that stays safe:
   // encode as saleTs (13 digits) concatenated with a zero-padded 3-digit sequence.
   var _seq = (typeof window._saleSeq === 'number') ? (++window._saleSeq) : (window._saleSeq = 0);
-  var saleId = parseInt(String(saleTs) + String(_seq % 1000).padStart(3,'0'));
+  // BUG FIX: parseInt of a 16-digit string loses precision. Store ID as string to
+  // preserve all digits, and keep numeric form only up to MAX_SAFE_INTEGER.
+  var _rawId = String(saleTs) + String(_seq % 1000).padStart(3,'0');
+  var saleId = _rawId.length <= 15 ? parseInt(_rawId) : saleTs * 1000 + (_seq % 1000);
   sales.push({id:saleId,ts:saleTs,total,payment,note,items});
   // auto-add to credit book if paid by Credit
   var custName='';
@@ -1350,7 +1365,13 @@ function renderInv(){
           const m=isPrepCat?null:margin(p);
           const sc=p.stock===0?'out':p.stock<=p.lowAt?'low':'';
           const sb=p.stock===0?'badge-red':p.stock<=p.lowAt?'badge-amber':'badge-green';
-          const restockChip=p.stock<=p.lowAt&&p.supplier?`<div class="restock-chip" onclick="toast('📲 Contact: ${p.supplier}')">🔔 Restock from ${p.supplier}</div>`:'';
+          // BUG FIX: p.supplier is user-supplied text; embedding it raw in an onclick
+          // string allows a stored-XSS payload (e.g. a name containing a single quote)
+          // to break out of the string and execute arbitrary JS.  Store the supplier on
+          // window._poshRestockSuppliers (keyed by product id) and reference by id only.
+          if(!window._poshRestockSuppliers)window._poshRestockSuppliers={};
+          window._poshRestockSuppliers[p.id]=p.supplier||'';
+          const restockChip=p.stock<=p.lowAt&&p.supplier?`<div class="restock-chip" onclick="toast('📲 Contact: '+(_esc(window._poshRestockSuppliers[${p.id}]||'')))">🔔 Restock from ${_esc(p.supplier)}</div>`:'';
           // Price display: show fresh/fried for PREP_CATS, single price otherwise
           const priceDisplay=isPrepCat&&p.prices
             ?`<div class="ii-price" style="font-size:11px">${fmt(p.prices.fresh)} / ${fmt(p.prices.fried)}</div>`
@@ -1651,7 +1672,7 @@ function deleteDebt(id){showConfirm('Delete this credit record?','This cannot be
 function remindDebtWhatsApp(id){
   const d=debts.find(x=>x.id===id);if(!d)return;
   const msg='Hello '+d.name+', this is a friendly reminder from '+shopName+'. You have an outstanding balance of '+fmt(d.amount-d.paid)+(d.due?' due '+new Date(d.due).toLocaleDateString('en-KE',{day:'numeric',month:'short'}):'')+'. '+(d.items?'Items: '+d.items+'. ':'')+'Kindly settle at your earliest convenience. Thank you 🙏';
-  const phone=d.phone.replace(/\s+/g,'').replace(/^0/,'254');
+  const phone=d.phone.replace(/\s+/g,'').replace(/^\+?254/,'254').replace(/^0/,'254');
   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
 }
 
@@ -2215,12 +2236,105 @@ function setHistDate(val){
 // PWA Manifest served as static file (manifest.json)
 
 // ═════════════════════════════════════
-//  PWA — SERVICE WORKER (static file)
+//  PWA — SERVICE WORKER + AUTO-UPDATE
 // ═════════════════════════════════════
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('/sw.js',{scope:'/'})
-    .then(function(reg){ console.log('POSH SW registered ✅'); })
+    .then(function(reg){
+      console.log('POSH SW registered ✅');
+
+      // ── Detect a waiting (freshly installed) worker ──────
+      // This covers the case where the page was already open when
+      // the new SW finished installing.
+      function _onUpdateFound(){
+        var newWorker = reg.installing;
+        if(!newWorker) return;
+        newWorker.addEventListener('statechange', function(){
+          if(newWorker.state === 'installed' && navigator.serviceWorker.controller){
+            // A new SW is installed and waiting — show the banner
+            _showUpdateBanner();
+          }
+        });
+      }
+
+      // New worker arrived after page load
+      reg.addEventListener('updatefound', _onUpdateFound);
+
+      // Worker was already waiting when the page loaded
+      // (e.g. user opened a second tab right after a deploy)
+      if(reg.waiting && navigator.serviceWorker.controller){
+        _showUpdateBanner();
+      }
+
+      // Poll for updates every 60 seconds so long-lived tabs catch deploys
+      setInterval(function(){ reg.update(); }, 60 * 1000);
+    })
     .catch(function(e){ console.log('SW registration skipped:', e.message); });
+
+  // ── Listen for the POSH_UPDATE_READY message from the SW ──
+  // The new SW posts this after it activates and claims all clients.
+  navigator.serviceWorker.addEventListener('message', function(event){
+    if(event.data && event.data.type === 'POSH_UPDATE_READY'){
+      console.log('[POSH] SW signalled update ready:', event.data.version);
+      _showUpdateBanner();
+    }
+  });
+
+  // ── Reload automatically once the new SW takes over ───────
+  // If the user is idle on the PIN/entry screen (nothing sensitive open),
+  // reload silently. If they're mid-session, the banner lets them decide.
+  var _swRefreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(_swRefreshing) return;
+    _swRefreshing = true;
+    var appVisible = (function(){
+      var appEl   = document.getElementById('app');
+      var pinEl   = document.getElementById('pin-screen');
+      var entryEl = document.getElementById('entry-screen');
+      var appOpen = appEl   && appEl.style.display   !== 'none';
+      var pinOpen = pinEl   && pinEl.style.display   !== 'none';
+      var entryOpen = entryEl && entryEl.style.display !== 'none';
+      // Consider it "idle" (safe to silent-reload) if on PIN or entry screen
+      return appOpen && !pinOpen && !entryOpen;
+    })();
+    if(!appVisible){
+      // User is on the lock/entry screen — safe to reload transparently
+      window.location.reload();
+    }
+    // If they're actively using the app, the banner is already showing
+  });
+}
+
+// ── Update banner logic ────────────────────────────────
+function _showUpdateBanner(){
+  var banner = document.getElementById('update-banner');
+  if(!banner || banner.classList.contains('show')) return; // already showing
+  banner.classList.add('show');
+}
+
+function applyUpdate(){
+  var banner = document.getElementById('update-banner');
+  if(banner) banner.classList.remove('show');
+  // Ask the waiting SW to activate immediately
+  if('serviceWorker' in navigator && navigator.serviceWorker.controller){
+    navigator.serviceWorker.getRegistration().then(function(reg){
+      if(reg && reg.waiting){
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      } else {
+        // No waiting worker (e.g. already activated via controllerchange)
+        window.location.reload();
+      }
+    });
+  } else {
+    window.location.reload();
+  }
+}
+
+function dismissUpdate(){
+  var banner = document.getElementById('update-banner');
+  if(banner) banner.classList.remove('show');
+  // Remind them again in 10 minutes if they dismiss
+  setTimeout(_showUpdateBanner, 10 * 60 * 1000);
 }
 
 // ═════════════════════════════════════

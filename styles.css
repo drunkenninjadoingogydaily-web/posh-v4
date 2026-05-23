@@ -1526,3 +1526,107 @@ input,select,textarea{font-family:var(--font)}
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ══════════════════════════════════
+   32. BUG FIX — Missing CSS classes used in HTML
+   ══════════════════════════════════ */
+
+/* sidebar-overlay — HTML uses this, CSS only had .sb-overlay */
+.sidebar-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 300;
+  opacity: 0; pointer-events: none; transition: opacity .28s;
+}
+.sidebar-overlay.open { opacity: 1; pointer-events: all; }
+
+/* sync-banner — used in HTML with class "sync-banner" */
+.sync-banner {
+  display: none; position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%); color: #fff; padding: 8px 18px;
+  border-radius: 22px; font-size: 12px; font-weight: 600;
+  z-index: 700; white-space: nowrap; align-items: center;
+  gap: 6px; box-shadow: var(--shadow);
+}
+
+/* screen-sticky-header — HTML uses this, CSS had screen-sticky-hdr */
+.screen-sticky-header {
+  background: var(--surf); border-bottom: 1px solid var(--brd);
+  position: sticky; top: 0; z-index: 10; transition: background .3s;
+}
+
+/* screen-scroll — used throughout for scrollable screen bodies */
+.screen-scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+}
+.screen-scroll::-webkit-scrollbar { display: none; }
+
+/* header-actions — POS screen top bar right side */
+.header-actions {
+  display: flex; align-items: center; gap: 7px;
+}
+
+/* date-pill — POS screen date display (differs from dash-date-pill) */
+.date-pill {
+  background: var(--surf2); border: 1px solid var(--brd);
+  border-radius: 20px; padding: 5px 11px; font-size: 11px;
+  font-weight: 700; color: var(--text2);
+}
+
+/* settings-title-row — used in settings sections */
+.settings-title-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px; padding: 0 2px;
+}
+
+/* lookup-dropdown — customer lookup results */
+.lookup-dropdown {
+  background: var(--surf); border: 1.5px solid var(--brd);
+  border-radius: 10px; overflow: hidden; margin-top: 4px;
+  box-shadow: var(--shadow);
+}
+
+/* cash-input — cash tendered field in checkout */
+.cash-input {
+  flex: 1; padding: 10px 12px; background: var(--surf2);
+  border: 1.5px solid var(--brd); border-radius: var(--radius-sm);
+  font-family: var(--font); font-size: 16px; font-weight: 700;
+  color: var(--text); outline: none; transition: border-color .15s;
+  text-align: right; width: 120px;
+}
+.cash-input:focus { border-color: var(--acc); }
+
+/* discount-type-btn — percent / flat toggle in discount modal */
+.discount-type-btn {
+  flex: 1; padding: 10px; background: var(--surf2);
+  border: 1.5px solid var(--brd); border-radius: var(--radius-sm);
+  font-family: var(--font); font-size: 12px; font-weight: 700;
+  cursor: pointer; color: var(--text); transition: all .15s;
+}
+.discount-type-btn.active {
+  background: var(--acc-l); border-color: var(--acc); color: var(--acc);
+}
+
+/* float-summary-grid — grid inside float modal */
+.float-summary-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* split-pay-row — two inputs in split payment section */
+.split-pay-row {
+  display: flex; gap: 10px; margin-bottom: 8px;
+}
+
+/* split-remaining — balance indicator in split payment */
+.split-remaining {
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  text-align: center; padding: 6px 0;
+}
+
+/* cs-totals — used on cart-sheet totals div */
+.cs-totals { padding: 8px 0 10px; }
+
+/* change-row — row inside change calculator */
+.change-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 8px;
+}

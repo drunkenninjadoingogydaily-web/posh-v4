@@ -94,6 +94,10 @@ function _boot () {
     window.poshOwnerUser = null;
     window._poshAuthAdvanced = false; // BUG FIX: reset so re-login auto-advance works
     localStorage.removeItem('posh_role_choice');
+    // BUG FIX: clear posh_owner_uid so next page load doesn't skip the entry
+    // screen and bypass auth — previously any user on the same device could
+    // reach the PIN screen without signing in again after a sign-out.
+    localStorage.removeItem('posh_owner_uid');
     if (typeof lockApp         === 'function') lockApp();
     if (typeof showEntryScreen === 'function') showEntryScreen();
   };

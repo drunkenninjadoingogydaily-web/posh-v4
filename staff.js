@@ -166,9 +166,13 @@
     if (!pin)  { slErr('Enter your 4-digit PIN'); return; }
     if (!/^\d{4}$/.test(pin)) { slErr('PIN must be 4 digits'); return; }
 
-    // Try local data (offline mode — same shop code already loaded)
+    // Try local data only when offline — if we're online we always re-fetch
+    // so that staff accounts deleted/deactivated on the admin device take
+    // effect immediately (BUG FIX: the old fast-path let fired staff log in
+    // indefinitely from their locally-cached credentials).
     const localCode = (localStorage.getItem('posh_shop_code') || '').toUpperCase();
-    if (localCode && localCode === code) {
+    const isOffline = !navigator.onLine;
+    if (isOffline && localCode && localCode === code) {
       _verifyStaffPin(name, pin, code);
       return;
     }
@@ -230,6 +234,22 @@
     localStorage.setItem('posh_staff_name',      name);
     localStorage.setItem('posh_role_choice',     'staff');
     if (shopCode) localStorage.setItem('posh_staff_shop_code', shopCode);
+
+    // BUG FIX: only set cloud mode if the owner hasn't explicitly chosen local mode.
+    // The old code unconditionally set 'cloud', silently overriding the owner's
+    // decision on shared or air-gapped devices.  Staff devices that have never had
+    // a mode set default to 'cloud' (they need to sync), but an existing 'local'
+    // preference is respected.
+    var _existingMode = localStorage.getItem('posh_storage_mode');
+    if (!_existingMode || _existingMode === '') {
+      localStorage.setItem('posh_storage_mode', 'cloud');
+    }
+    if (localStorage.getItem('posh_storage_mode') === 'cloud') {
+      if (typeof startCloudListener === 'function') {
+        startCloudListener();
+      }
+    }
+
     hideEntryScreen();
     if (typeof unlockApp        === 'function') unlockApp();
     if (typeof applyRoleAccess  === 'function') applyRoleAccess();
@@ -362,7 +382,12 @@
   window.renderStaffList = function () {
     const listEl   = $('staff-accounts-list');
     const codeDisp = $('staff-shop-code-display');
-    if (codeDisp) codeDisp.textContent = window.getShopCode();
+    // BUG FIX: also populate the Staff screen tab's list and shop-code display
+    const screenList = $('staff-screen-list');
+    const screenCode = $('staff-screen-shop-code');
+    const shopCode = window.getShopCode();
+    if (codeDisp) codeDisp.textContent = shopCode;
+    if (screenCode) screenCode.textContent = shopCode;
     if (!listEl) return;
     const accounts = window.staffAccounts || [];
     if (!accounts.length) {
@@ -392,6 +417,8 @@
         '</div>' +
       '</div>';
     }).join('');
+    // BUG FIX: mirror to staff screen tab
+    if (screenList) screenList.innerHTML = listEl ? listEl.innerHTML : '';
   };
 
   function _showStaffPanel (panel) {

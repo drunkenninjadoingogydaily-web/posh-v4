@@ -18,6 +18,39 @@
 .staff-card{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--surf2);border-radius:13px;border:1px solid var(--brd)}
 #auth-tab-signin.active,#auth-tab-signup.active{background:var(--acc);color:var(--surf)}
 #auth-tab-signin:not(.active),#auth-tab-signup:not(.active){background:transparent;color:var(--muted)}
+
+/* ── Update-available banner ────────────────────────────
+   Hidden by default. JS adds .show when a new SW is waiting.
+   Slides in from the top, sits above the sync-banner.        */
+.update-banner{
+  position:fixed;top:0;left:0;right:0;z-index:1100;
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;
+  background:linear-gradient(135deg,#1e40af,#2563eb);
+  color:#fff;
+  box-shadow:0 3px 14px rgba(37,99,235,.45);
+  transform:translateY(-110%);
+  transition:transform .3s cubic-bezier(.34,1.3,.64,1);
+  font-family:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+.update-banner.show{ transform:translateY(0); }
+.update-banner-icon{ font-size:1.35rem;flex-shrink:0; }
+.update-banner-text{ flex:1;min-width:0; }
+.update-banner-title{ font-size:.84rem;font-weight:800;line-height:1.2; }
+.update-banner-sub{ font-size:.75rem;opacity:.82;margin-top:1px; }
+.update-banner-btn{
+  flex-shrink:0;
+  background:#fff;color:#1e40af;
+  border:none;border-radius:8px;
+  padding:6px 13px;font-size:.78rem;font-weight:800;
+  cursor:pointer;font-family:inherit;
+  white-space:nowrap;
+}
+.update-banner-close{
+  flex-shrink:0;background:none;border:none;
+  color:rgba(255,255,255,.7);font-size:1.2rem;
+  cursor:pointer;padding:0 2px;line-height:1;
+}
 </style>
 </head>
 <body>
@@ -393,6 +426,21 @@
 
   <!-- Sync banner -->
   <div id="sync-banner" class="sync-banner"></div>
+
+  <!-- ── Update Available Banner ──────────────────────
+       Shown automatically when a new Service Worker is
+       waiting. User taps "Update now" → page reloads with
+       fresh code. Dismissed updates re-appear in 10 min.
+  ──────────────────────────────────────────────────── -->
+  <div id="update-banner" class="update-banner">
+    <span class="update-banner-icon">🆕</span>
+    <div class="update-banner-text">
+      <div class="update-banner-title">Update available</div>
+      <div class="update-banner-sub">Bug fixes &amp; improvements ready</div>
+    </div>
+    <button class="update-banner-btn" onclick="applyUpdate()">Update now</button>
+    <button class="update-banner-close" onclick="dismissUpdate()" title="Remind me later">×</button>
+  </div>
 
   <!-- ── Storage Mode Banner ──────────────────────── -->
   <div id="storage-mode-banner" class="storage-banner">
@@ -864,11 +912,24 @@
     <div class="screen-sticky-header" style="padding:13px 14px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <span class="screen-title">Staff</span>
-        <button class="btn btn-primary" style="padding:8px 13px;font-size:12px" onclick="openStaffModal(null)">+ Add</button>
+        <button class="btn btn-primary" style="padding:8px 13px;font-size:12px" onclick="openAddStaffModal()">+ Add</button>
       </div>
     </div>
     <div class="screen-scroll" style="padding-bottom:72px">
-      <div id="staff-list" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px"></div>
+      <!-- Shop code card -->
+      <div style="margin:12px 14px 0;padding:13px 14px;background:var(--acc-l);border:1.5px solid var(--acc);border-radius:14px">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Shop Code — share with staff</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span id="staff-screen-shop-code" style="font-size:24px;font-weight:900;letter-spacing:4px;color:var(--acc);font-family:monospace"></span>
+          <button onclick="copyShopCode()" style="padding:7px 12px;background:var(--acc);color:var(--surf);border:none;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📋 Copy</button>
+        </div>
+      </div>
+      <div style="padding:10px 14px 4px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;font-weight:700;color:var(--muted)">Staff Members</span>
+      </div>
+      <!-- BUG FIX: renderStaffList() in staff.js writes to id="staff-accounts-list" (inside the modal).
+           This container mirrors it so the Staff screen tab shows the same list. -->
+      <div id="staff-screen-list" style="padding:0 14px 20px;display:flex;flex-direction:column;gap:8px"></div>
     </div>
   </div>
 

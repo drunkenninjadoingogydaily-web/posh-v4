@@ -48,13 +48,16 @@ function validateForm() {
             if (err) err.classList.remove('visible');
         }
 
-        // Live clear error on fix
-        input.addEventListener('input', () => {
-            if (check(input.value)) {
-                input.classList.remove('input-error');
-                if (err) err.classList.remove('visible');
-            }
-        }, { once: false });
+        // Live clear error on fix — use dataset flag to avoid stacking listeners
+        if (!input.dataset.poshLiveValidated) {
+            input.dataset.poshLiveValidated = '1';
+            input.addEventListener('input', () => {
+                if (check(input.value)) {
+                    input.classList.remove('input-error');
+                    if (err) err.classList.remove('visible');
+                }
+            });
+        }
     });
 
     return valid;
@@ -132,22 +135,25 @@ function onError(btn, btnText, spinner, arrow) {
 }
 
 function showToast(message, type = 'success') {
-    const toast  = document.getElementById('toast');
-    if (!toast) return;
+    // BUG FIX: app.js toast() uses textContent directly, wiping child spans.
+    // For plain success messages, delegate to app.js toast().
+    // For error type, use a separate visual approach via CSS class on the toast.
+    const toastEl = document.getElementById('toast');
+    if (!toastEl) return;
 
-    const msgEl  = toast.querySelector('.toast-msg');
-    const iconEl = toast.querySelector('.toast-icon');
+    if (type === 'success' && typeof window.toast === 'function') {
+        window.toast(message);
+        return;
+    }
 
-    const icons = { success: '✅', error: '❌', konami: '🎉' };
-    if (msgEl)  msgEl.textContent  = message;
-    if (iconEl) iconEl.textContent = icons[type] || '✅';
+    // Error / special type: set textContent (compatible with app.js structure)
+    toastEl.textContent = (type === 'error' ? '❌ ' : '') + message;
+    toastEl.classList.remove('toast-error');
+    if (type === 'error') toastEl.classList.add('toast-error');
 
-    toast.classList.remove('toast-error');
-    if (type === 'error') toast.classList.add('toast-error');
-
-    toast.classList.add('show');
-    clearTimeout(toast._hideTimer);
-    toast._hideTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+    toastEl.classList.add('show');
+    clearTimeout(toastEl._hideTimer);
+    toastEl._hideTimer = setTimeout(() => toastEl.classList.remove('show'), 5000);
 }
 
 window.handleSubmit = handleSubmit;

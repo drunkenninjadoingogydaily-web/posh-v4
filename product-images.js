@@ -52,8 +52,9 @@
     set(id, base64) {
       try { localStorage.setItem(IMG_PREFIX + id, base64); return true; }
       catch (e) {
-        // localStorage quota exceeded — try compressing further
+        // localStorage quota exceeded — warn user
         console.warn('POSH image storage full:', e);
+        if (typeof toast === 'function') toast('⚠️ Image not saved — storage full. Clear old images in Settings.');
         return false;
       }
     },
@@ -456,19 +457,31 @@
   // ── 5b. Favourites strip ─────────────────────────────
   // app.js renders fav pills with emoji — patch after render
   (function patchRenderFavs() {
-    const _origSwitch = window.switchTab;
-    if (!_origSwitch) return;
-    window.switchTab = function (tab) {
-      _origSwitch.apply(this, arguments);
-      if (tab === 'sales') setTimeout(_patchFavPills, 80);
+    const tryPatch = () => {
+      const _origSwitch = window.switchTab;
+      if (typeof _origSwitch !== 'function') { setTimeout(tryPatch, 300); return; }
+      window.switchTab = function (tab) {
+        _origSwitch.apply(this, arguments);
+        if (tab === 'sales') setTimeout(_patchFavPills, 80);
+      };
     };
+    tryPatch();
     // Also patch on initial load
     setTimeout(_patchFavPills, 800);
   })();
 
   function _patchFavPills() {
+    const prods = typeof products !== 'undefined' ? products : [];
     document.querySelectorAll('.fav-pill').forEach(pill => {
-      const pid = pill.dataset.id || pill.getAttribute('data-id');
+      // app.js does not set data-id on fav pills; match by product name text
+      let pid = pill.dataset.id || pill.getAttribute('data-id');
+      if (!pid) {
+        // Fall back: find product whose name matches the pill's first text node
+        const nameEl = pill.querySelector('span');
+        const pillName = nameEl ? nameEl.textContent.trim() : '';
+        const match = prods.find(p => p.name === pillName && p.fav);
+        if (match) pid = String(match.id);
+      }
       if (!pid) return;
       const b64 = IMAGES.get(pid);
       if (!b64) return;
@@ -594,7 +607,7 @@
   (function injectCSS() {
     if (document.getElementById('posh-img-css')) return;
     const s = document.createElement('style');
-    s.id = 's-id';
+    s.id = 'posh-img-css';
     s.textContent = `
       /* Product form image uploader */
       #emoji-picker img { display:block; }

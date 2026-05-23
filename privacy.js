@@ -221,6 +221,10 @@ function _applyModeSwitch(targetMode) {
   showStorageModeBanner();
 
   if (targetMode === 'local') {
+    // BUG FIX: cancel any debounced or retrying cloudSync BEFORE stopping the
+    // listener.  Without this, a sync already queued within its 2-second window
+    // fires after the switch and sends a rogue write to Firestore in local mode.
+    if (typeof cancelPendingSync === 'function') cancelPendingSync();
     // Stop real-time listener if running
     if (typeof stopCloudListener === 'function') stopCloudListener();
     // Hide the firebase sync indicator immediately

@@ -1268,22 +1268,31 @@ window.closeThemeModal = function(){
     _orig && _orig();
     const container = $id('reports-body');
     if(!container) return;
+    // BUG FIX: remove previously appended extended cards before re-adding them,
+    // otherwise every renderReports call (tab switch, period change) duplicates
+    // the profitability, heatmap and cash-flow cards below the main report.
+    ['posh-prof-card','posh-heat-card','posh-cf-card'].forEach(function(id){
+      var old = $id(id); if(old) old.remove();
+    });
     const allSales  = typeof filterSales === 'function' ? filterSales(window.rptFilter) : [];
 
     // Profitability
     const profCard = document.createElement('div');
+    profCard.id = 'posh-prof-card';
     profCard.className = 'chart-card';
     profCard.innerHTML = `<div class="chart-title">💰 Product Profitability</div>${renderProfitabilityTable(buildProfitabilityData(allSales))}`;
     container.appendChild(profCard);
 
     // Heatmap
     const heatCard = document.createElement('div');
+    heatCard.id = 'posh-heat-card';
     heatCard.className = 'chart-card';
     heatCard.innerHTML = `<div class="chart-title">🕐 Hourly Sales Heatmap</div>${renderHeatmap(buildHourlyHeatmap(allSales))}`;
     container.appendChild(heatCard);
 
     // Cash flow
     const cfCard = document.createElement('div');
+    cfCard.id = 'posh-cf-card';
     cfCard.className = 'chart-card';
     cfCard.innerHTML = `<div class="chart-title" style="display:flex;justify-content:space-between;align-items:center">
       💸 Cash Flow (14 days)
@@ -1347,8 +1356,12 @@ function _closeModal(modalId, ovId){
 // ── Scanner modal openers ─────────────────────────────
 // NOTE: openScannerModal and scanBarcodeForProduct are defined in barcode.js
 // (which loads after quickwins.js) and must NOT be overridden here.
-// We only expose closeScannerModal which is safe to alias.
-window.closeScannerModal     = ()=>_closeModal('scanner-modal','scanner-ov');
+// closeScannerModal is set as a lightweight fallback here; barcode.js will
+// overwrite it with its full implementation (which also stops the camera).
+// BUG FIX: only assign if barcode.js has not already defined it.
+if (typeof window.closeScannerModal !== 'function') {
+  window.closeScannerModal = ()=>_closeModal('scanner-modal','scanner-ov');
+}
 window.openReturnModal       = ()=>_openModal('return-modal','return-ov');
 window.closeReturnModal      = ()=>_closeModal('return-modal','return-ov');
 window.openPurchaseOrderModal= ()=>_openModal('po-modal','po-ov');
