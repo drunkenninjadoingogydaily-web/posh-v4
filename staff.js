@@ -239,27 +239,52 @@
     localStorage.setItem('posh_staff_name',      name);
     localStorage.setItem('posh_role_choice',     'staff');
     if (shopCode) localStorage.setItem('posh_staff_shop_code', shopCode);
-
-    // FIX: staff devices joining a shop MUST sync to cloud — that is the entire
-    // point of the shop-code flow.  A pre-existing 'local' setting (e.g. the
-    // device was previously used as an owner device in local mode, or the app
-    // defaulted to 'local' on first load) would silently block cloudSync() in
-    // saveData(), so staff sales never reach Firestore and the owner on Phone A
-    // never sees them.  Force 'cloud' unconditionally here.
     localStorage.setItem('posh_storage_mode', 'cloud');
-    if (localStorage.getItem('posh_storage_mode') === 'cloud') {
-      if (typeof startCloudListener === 'function') {
-        startCloudListener();
+
+    // FIX-4 (duplicate cloudLoad): Previously this function called cloudLoad()
+    // (async, ~network round-trip) and then IMMEDIATELY called unlockApp()
+    // below it.  unlockApp() contains its own cloudLoad() call, so:
+    //   • cloudLoad #1 starts (staff.js line)
+    //   • cloudLoad #2 starts (unlockApp line, milliseconds later)
+    //   • Both resolve independently and both call _applyCloudData + startCloudListener
+    //   This left two concurrent listeners running, doubled UI renders, and caused
+    //   the second _applyCloudData to clobber state that the first had just set.
+    //
+    // Fix: set window._staffCloudLoaded = true BEFORE calling unlockApp() so
+    // unlockApp()'s cloudLoad guard in app.js sees the flag and skips its own
+    // cloudLoad.  All UI work (renderDashboard, startCloudListener) is done
+    // here in the single callback, after which unlockApp() only handles DOM
+    // transitions and role access.
+    function _finishUnlock (updated) {
+      // Mark that staff login already loaded cloud data — unlockApp must skip its own cloudLoad
+      window._staffCloudLoaded = true;
+
+      if (updated) {
+        if (typeof renderDashboard === 'function') renderDashboard();
+        if (typeof renderCats      === 'function') renderCats();
+        if (typeof renderSales     === 'function') renderSales();
       }
+
+      // Start the real-time listener exactly once, here, after data is applied
+      if (typeof startCloudListener === 'function') startCloudListener();
+
+      // Now transition the UI — unlockApp will see _staffCloudLoaded and skip cloudLoad
+      hideEntryScreen();
+      if (typeof unlockApp       === 'function') unlockApp();
+      if (typeof applyRoleAccess === 'function') applyRoleAccess();
+
+      // Show staff name in sidebar badge
+      const badge = $('sb-role-badge');
+      if (badge) { badge.textContent = '👤 ' + name + ' — Staff'; }
+      if (typeof toast === 'function') toast('👋 Welcome back, ' + name + '!');
     }
 
-    hideEntryScreen();
-    if (typeof unlockApp        === 'function') unlockApp();
-    if (typeof applyRoleAccess  === 'function') applyRoleAccess();
-    // Show staff name in sidebar badge
-    const badge = $('sb-role-badge');
-    if (badge) { badge.textContent = '👤 ' + name + ' — Staff'; }
-    if (typeof toast === 'function') toast('👋 Welcome back, ' + name + '!');
+    if (typeof cloudLoad === 'function') {
+      cloudLoad(_finishUnlock);
+    } else {
+      // Firebase not ready — proceed without cloud data
+      _finishUnlock(false);
+    }
   }
 
   // ═══════════════════════════════════════════════════════

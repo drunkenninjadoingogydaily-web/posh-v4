@@ -26,9 +26,28 @@ function _boot () {
   const auth = getAuth(getApp());
   window._poshAuth = auth;
 
+  // FIX-3 (firebaseAuthReady timing): Previously this event fired at the END
+  // of _boot(), BEFORE onAuthStateChanged had been set up.  Any code that
+  // listened for firebaseAuthReady and then immediately called auth-dependent
+  // APIs (e.g. reading currentUser) would race against the first auth state
+  // callback and see null — even for a previously signed-in owner.
+  //
+  // Fix: fire firebaseAuthReady inside the FIRST onAuthStateChanged callback,
+  // using a one-shot flag so it only fires once.  At that point Firebase Auth
+  // has fully resolved the persisted session from IndexedDB and `user` is the
+  // definitive value (null = signed out, object = signed in).
+  var _authReadyFired = false;
+
   // ── Persist auth state across page refreshes ──────────────
   onAuthStateChanged(auth, function (user) {
     window.poshOwnerUser = user || null;
+
+    // Fire firebaseAuthReady exactly once — after Auth has settled (Fix 3)
+    if (!_authReadyFired) {
+      _authReadyFired = true;
+      window.dispatchEvent(new Event('firebaseAuthReady'));
+      console.log('POSH Firebase Auth ready ✅');
+    }
 
     // If entry screen is open & owner panel is visible → advance
     // BUG FIX: guard with _poshAuthAdvanced to prevent double-firing on page load
@@ -102,8 +121,7 @@ function _boot () {
     if (typeof showEntryScreen === 'function') showEntryScreen();
   };
 
-  window.dispatchEvent(new Event('firebaseAuthReady'));
-  console.log('POSH Firebase Auth ready ✅');
+  window.dispatchEvent(new Event('poshAuthBootComplete')); // internal: _boot ran
 }
 
 // Boot after firebase.js is ready

@@ -16,7 +16,7 @@
 // ═══════════════════════════════════════════════════════
 
 // ── BUMP THIS on every deploy that should trigger an update ──
-const CACHE_VERSION = 'posh-v19';
+const CACHE_VERSION = 'posh-v22';
 
 // Files to cache for offline use
 // Add any new JS/CSS files you create to this list.

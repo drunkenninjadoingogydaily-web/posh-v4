@@ -688,6 +688,45 @@ function unlockApp(){
   // Show role badge on PIN screen for next lock
   var badge=document.getElementById('pin-role-badge');
   if(badge){badge.textContent='';badge.style.display='none';}
+  // FIX-4 (duplicate cloudLoad guard): When staff.js calls _unlockAsStaff(),
+  // it runs cloudLoad() and then calls unlockApp() from inside the callback.
+  // Without this guard, unlockApp would start a SECOND concurrent cloudLoad,
+  // resulting in two listeners, two _applyCloudData calls that clobber each
+  // other, and duplicate renders.  _staffCloudLoaded is set by _unlockAsStaff
+  // just before it calls unlockApp(), then cleared here so subsequent
+  // lock/unlock cycles (owner PIN screen) still get a fresh cloudLoad.
+  var _storageMode = localStorage.getItem('posh_storage_mode') || 'cloud';
+  if(window._staffCloudLoaded){
+    window._staffCloudLoaded = false;
+    console.log('[POSH] unlockApp: skipping cloudLoad (staff already loaded)');
+    return;
+  }
+  // BUG FIX (staff sync): pull fresh cloud data every time the app is
+  // unlocked.  Without this, Phone A (admin) only sees Phone B's sales if the
+  // real-time listener happened to fire AFTER the PIN was entered.  If the
+  // listener fired while the PIN screen was showing, renderDashboard was
+  // skipped (pin-screen != 'none' guard in listener) and the sale was lost
+  // from the UI until the next change.  A cloudLoad here guarantees the admin
+  // always sees the latest Firestore state the moment they unlock.
+  if(_storageMode === 'cloud' && typeof cloudLoad === 'function'){
+    cloudLoad(function(updated){
+      if(updated){
+        renderDashboard();
+        if(typeof renderCats    === 'function') renderCats();
+        if(typeof renderSales   === 'function') renderSales();
+        if(typeof renderHistory === 'function'){
+          var _active=document.querySelector('.screen.active');
+          if(_active && _active.id==='screen-history') renderHistory();
+        }
+        if(typeof renderReports === 'function'){
+          var _active2=document.querySelector('.screen.active');
+          if(_active2 && _active2.id==='screen-reports') renderReports();
+        }
+      }
+      // Ensure listener is running (may have been stopped on idle/lock)
+      if(typeof startCloudListener === 'function') startCloudListener();
+    });
+  }
 }
 
 function lockApp(){
