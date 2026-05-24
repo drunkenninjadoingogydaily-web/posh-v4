@@ -16,13 +16,13 @@
 // ═══════════════════════════════════════════════════════
 
 // ── BUMP THIS on every deploy that should trigger an update ──
-const CACHE_VERSION = 'posh-v22';
+const CACHE_VERSION = 'posh-v23';
 
 // Files to cache for offline use
 // Add any new JS/CSS files you create to this list.
 const STATIC_ASSETS = [
   '/',
-   '/index.html',
+  '/index.html',
   '/help.html',
   '/styles.css',
   '/app.js',
@@ -37,7 +37,6 @@ const STATIC_ASSETS = [
   '/image-sync.js',
   '/privacy.js',
   '/email.js',
-  '/firebase-auth.js',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
@@ -109,17 +108,25 @@ self.addEventListener('fetch', function (event) {
 
   // Pass Firebase / Firestore API calls directly to network —
   // never cache auth or database requests.
+  // BUG FIX: explicitly call event.respondWith() here to prevent
+  // the code from falling through to the cache-first logic below.
+  // A bare `return;` does NOT stop the fetch handler — it only
+  // exits the if-block and continues with the rest of the function.
   if (
     url.hostname.includes('firebaseapp.com') ||
     url.hostname.includes('googleapis.com')  ||
     url.hostname.includes('gstatic.com')     ||
     url.hostname.includes('firestore.googleapis.com')
   ) {
-    return; // let browser handle normally
+    return event.respondWith(fetch(event.request));
   }
 
   event.respondWith(
-    caches.match(event.request).then(function (cached) {
+    // BUG FIX: add { ignoreQuery: true } so that /app.js and /app.js?v=123
+    // are treated as the same cache entry. Without this, query-string cache
+    // busters or Firebase SDK versioned URLs bypass the cache entirely and
+    // re-fetch the same file multiple times.
+    caches.match(event.request, { ignoreQuery: true }).then(function (cached) {
       // Serve from cache immediately, then refresh in background
       var networkFetch = fetch(event.request).then(function (response) {
         if (response && response.status === 200 && response.type !== 'opaque') {
