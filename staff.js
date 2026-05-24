@@ -201,6 +201,16 @@
         // fall back to window.shopName and land in the wrong document, making them
         // invisible to the owner on Phone A.
         localStorage.setItem('posh_shop_code', code);
+        // MULTI-OWNER FIX: cache the owner's UID from the cloud document so that
+        // firebase.js getClientId() uses shops/{ownerUid} — the owner-keyed path —
+        // rather than the shop code when staff devices sync sales.  Without this,
+        // two different owners who happen to share the same shop code would land in
+        // the same Firestore document.  ownerUid is written to every document by
+        // _buildSyncPayload (firebase.js), so it is always present on any document
+        // created after the multi-owner patch.
+        if (data.ownerUid) {
+          localStorage.setItem('posh_owner_uid', data.ownerUid);
+        }
         localStorage.setItem('posh_onboarded', 'true');
         // Cache the full shop data for offline
         try { localStorage.setItem('posh_data', JSON.stringify(Object.assign({}, data, { shopCode: code }))); } catch (e) {}

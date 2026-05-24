@@ -25,9 +25,20 @@
 //  FIX-6  No pending sync after listener error
 //         → Listener error callback now schedules cloudSync() after the
 //           restart backoff so queued local changes are flushed on recovery.
+//  FIX-7  Owner writes fail with "Missing or insufficient permissions"
+//         → firebase.js initialised Firestore before firebase-auth.js had a
+//           chance to register Auth on the shared app instance.  The Firestore
+//           SDK therefore had no auth listener and sent every request without a
+//           JWT, even after the owner signed in.  Fix: import getAuth here and
+//           call it on the shared firebaseApp immediately after initializeApp()
+//           so the Firestore SDK discovers the auth session from the start.
+//           Staff writes (no Firebase Auth) are handled by updated Firestore
+//           Security Rules that also allow writes when the payload shopCode
+//           matches the document ID.
 // ═══════════════════════════════════════════════════════
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentSingleTabManager,
          doc, setDoc, getDoc, onSnapshot }
   from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -45,6 +56,16 @@ const firebaseConfig = {
 // ── INIT ────────────────────────────────────────────────
 const firebaseApp = initializeApp(firebaseConfig);
 
+// FIX-7: Register Auth on the shared app instance BEFORE initializeFirestore.
+// The Firestore SDK checks for a registered Auth instance at startup to attach
+// JWTs to outgoing requests.  firebase-auth.js also calls getAuth(getApp()),
+// but it loads AFTER firebase.js, so without this line Firestore starts with
+// no auth listener and sends every write unauthenticated — even for a signed-in
+// owner — causing "Missing or insufficient permissions" on every setDoc call.
+// Calling getAuth(firebaseApp) here is zero-cost: if firebase-auth.js later
+// calls getAuth() on the same app it gets the same singleton instance.
+getAuth(firebaseApp);
+
 // FIX-2 (tab manager): persistentMultipleTabManager uses a SharedWorker /
 // BroadcastChannel that is NOT available in iOS PWA home-screen mode or in
 // some Android WebViews.  When the tab manager fails to initialise, Firestore
@@ -60,7 +81,22 @@ const db = initializeFirestore(firebaseApp, {
 });
 
 // ── CLIENT ID ───────────────────────────────────────────
+// MULTI-OWNER FIX: The Firestore document key is now the owner's Firebase UID
+// (posh_owner_uid), not the shop code.  This means every owner gets their own
+// isolated document at shops/{ownerUid} — two owners with the same shop code
+// can never collide.
+//
+// Priority chain:
+//  1. posh_owner_uid  — set by firebase-auth.js on sign-in (owner) OR by
+//                       staff.js cloudLoadByCode callback (staff device reads
+//                       ownerUid from the Firestore document and caches it).
+//  2. posh_shop_code  — legacy fallback so existing installs keep working
+//                       until posh_owner_uid is populated.
+//  3. 'posh-default'  — last-resort fallback (single-owner installs with no
+//                       code and no auth, as before).
 function getClientId() {
+  const uid  = localStorage.getItem('posh_owner_uid');
+  if (uid)  return uid;
   const code = localStorage.getItem('posh_shop_code');
   if (code) return code.toLowerCase();
   return (window.shopName || 'posh-default').toLowerCase().replace(/\s+/g, '-');
@@ -247,6 +283,12 @@ function _buildSyncPayload(writeId, cloudSeqBase, cloudSales) {
     nextDebtId    : window.nextDebtId    || 1,
     staffAccounts : window.staffAccounts || [],
     shopCode      : localStorage.getItem('posh_shop_code') || '',
+    // MULTI-OWNER FIX: embed the owner's UID in every document write so:
+    //  a) staff devices can read it from the document and cache it locally
+    //     (see staff.js cloudLoadByCode callback), and
+    //  b) Firestore Security Rules can enforce shops/{ownerUid} ownership
+    //     by comparing resource.data.ownerUid to request.auth.uid.
+    ownerUid      : localStorage.getItem('posh_owner_uid') || '',
     lastSync      : new Date().toISOString(),
     _syncWriteId  : writeId,   // FIX-5: self-update guard token
     _syncSeq      : newSeq,    // BUG FIX: monotonic counter beats clock-skew

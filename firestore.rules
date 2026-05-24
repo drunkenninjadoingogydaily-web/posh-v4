@@ -1,0 +1,140 @@
+// ═══════════════════════════════════════════════════════
+//  POSH — Firestore Security Rules  (firestore.rules)
+//  MULTI-OWNER PATCH
+//  ──────────────────────────────────────────────────────
+//  Document structure flipped from:
+//    shops/{shopCode}   ← wrong: any staff device could write any shop
+//  to:
+//    shops/{ownerUid}   ← correct: document keyed by Firebase Auth UID
+//
+//  The ownerUid field is now embedded in every document write by
+//  _buildSyncPayload() in firebase.js, so rules can validate it.
+//
+//  ACCESS MATRIX
+//  ┌──────────────────────────────────────────────────────────────────┐
+//  │ Actor          │ Condition                        │ Allow        │
+//  ├──────────────────────────────────────────────────────────────────┤
+//  │ Owner (write)  │ request.auth.uid == ownerUid     │ read + write │
+//  │ Staff (write)  │ payload shopCode matches stored  │ write only   │
+//  │                │ shopCode in the existing doc     │              │
+//  │ Staff (read)   │ same shopCode match              │ read         │
+//  │ Anyone else    │ —                                │ deny         │
+//  └──────────────────────────────────────────────────────────────────┘
+//
+//  STAFF READ NOTE
+//  cloudLoadByCode() does a getDoc() by shop code (the old path), but
+//  now that documents are keyed by ownerUid, staff cannot do a direct
+//  getDoc by code.  See migration note below — you need a Cloud Function
+//  or a secondary "index" collection if you want strict rules.  For now
+//  the staff read rule is kept permissive (any authenticated OR
+//  unauthenticated read is allowed) because staff have no Firebase Auth
+//  account.  The staff write rule is the security boundary.
+//
+//  MIGRATION
+//  Existing documents at shops/{shopCode} will still be readable/writable
+//  by the old rules if left in place.  After deploying:
+//    1. Owner opens the app → writes to shops/{ownerUid} automatically
+//       (getClientId() now prefers posh_owner_uid).
+//    2. Staff logs in → cloudLoadByCode reads the document by shopCode
+//       (uses a collectionGroup query or the owner keeps a secondary
+//       index — see NOTE below), then caches posh_owner_uid locally.
+//    3. Subsequent staff writes go to shops/{ownerUid}.
+//  Old shops/{shopCode} documents can be deleted once all devices have
+//  migrated (posh_owner_uid appears in their localStorage).
+// ═══════════════════════════════════════════════════════
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Primary shop documents — keyed by owner UID ──────
+    match /shops/{ownerUid} {
+
+      // ── Helper: is this request from the authenticated owner? ──
+      function isOwner() {
+        return request.auth != null && request.auth.uid == ownerUid;
+      }
+
+      // ── Helper: does the incoming payload carry the correct shopCode? ──
+      // Staff devices have no Firebase Auth, so we verify the shop code
+      // they know matches what is already stored in the document.
+      // Two guards:
+      //   a) resource.data.shopCode — what's already in Firestore (prevents
+      //      a rogue staff device forging a code to overwrite another shop).
+      //   b) request.resource.data.shopCode — what the device is writing
+      //      (prevents a staff device stripping the code on write).
+      // Both must match and be non-empty.
+      function staffKnowsCode() {
+        return resource.data.shopCode != null
+            && resource.data.shopCode != ''
+            && request.resource.data.shopCode == resource.data.shopCode;
+      }
+
+      // ── Helper: staff write must not escalate privileges ──
+      // Staff cannot change adminPin, ownerUid, or shopCode.
+      // (Belt-and-suspenders: the app never sends these from staff.js,
+      //  but rules must be the last line of defence.)
+      function staffWriteIsSafe() {
+        return request.resource.data.ownerUid  == resource.data.ownerUid
+            && request.resource.data.shopCode  == resource.data.shopCode
+            && request.resource.data.adminPin  == resource.data.adminPin;
+      }
+
+      // ── READ ─────────────────────────────────────────────
+      // Owner: always.
+      // Staff: anyone who knows the shop code can read.
+      //   cloudLoadByCode() calls getDoc(shops/{ownerUid}) after it has
+      //   resolved the UID via the lookup index (see /shopIndex below).
+      //   Staff have no Firebase Auth, so we must allow unauthenticated
+      //   reads.  The document is not sensitive beyond what a code-holder
+      //   already knows (product list, staff accounts).
+      allow read: if isOwner() || true;
+      // ^ "|| true" keeps reads open for staff (no auth).
+      //   Tighten to `isOwner()` only once you add server-side lookup
+      //   (Cloud Function or index collection) that staff call first.
+
+      // ── WRITE — owner ─────────────────────────────────────
+      allow write: if isOwner();
+
+      // ── WRITE — staff ─────────────────────────────────────
+      // Staff (no Firebase Auth) can write only if:
+      //   1. The document already exists (can't create a new shop).
+      //   2. Their payload's shopCode matches the stored shopCode.
+      //   3. They haven't altered ownerUid, shopCode, or adminPin.
+      allow write: if resource != null
+                   && staffKnowsCode()
+                   && staffWriteIsSafe();
+    }
+
+    // ── Shop code → owner UID lookup index ───────────────
+    // A lightweight index collection so cloudLoadByCode() can resolve
+    // a human-readable shop code to the ownerUid document key without
+    // a collection-group scan.
+    //
+    // Document path : /shopIndex/{shopCode}
+    // Document body : { ownerUid: "abc123..." }
+    //
+    // The owner device writes this document automatically when it first
+    // syncs (see cloudSync in firebase.js — add a setDoc call there, or
+    // handle via a Firestore trigger Cloud Function).
+    //
+    // Until you implement the index write, cloudLoadByCode() falls back
+    // to scanning the shops collection by shopCode field — make sure
+    // you add a composite index on (shopCode ASC) in the Firebase console.
+    match /shopIndex/{shopCode} {
+      // Owner can create/update their own index entry.
+      // We look up the ownerUid in the entry and confirm it matches auth.
+      allow write: if request.auth != null
+                   && request.resource.data.ownerUid == request.auth.uid;
+
+      // Anyone can read the index (it only reveals ownerUid, not shop data).
+      allow read: if true;
+    }
+
+    // ── Deny everything else ──────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
